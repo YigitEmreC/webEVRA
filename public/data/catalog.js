@@ -387,7 +387,7 @@ export const packages = [
     price: 23632.81,
     featured: true,
     badge: "",
-    description: "Hareket ve varlık sensörleri, acil yardım butonları ve güvenlik dedektörleriyle yakınlarınız güvende, siz içiniz rahat.",
+    description: "Hareket ve varlık sensörleri, acil yardım butonları ve güvenlik dedektörleriyle yakınlarınız güvende, siz içiniz rahat olacak.",
     items: [
       ...centralSet,
       { id: "indoor-camera", qty: 1 },
