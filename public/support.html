@@ -49,12 +49,12 @@
   <main id="main">
     <section class="page-hero">
       <div class="container">
-        <p class="eyebrow">Help &amp; support</p>
-        <h1>How can we help?</h1>
-        <p class="lead">Request maintenance or technical support, or find a quick answer in the FAQ below.</p>
+        <p class="eyebrow">Yardım &amp; destek</p>
+        <h1>Nasıl yardımcı olabiliriz?</h1>
+        <p class="lead">Teknik veya uzaktan yardım talep edin. FAQ'a göz atın.</p>
         <div class="actions">
-          <a class="btn btn-primary" href="#request">Request support</a>
-          <a class="btn btn-secondary" href="#faq">Browse the FAQ</a>
+          <a class="btn btn-primary" href="#request">Yardım iste</a>
+          <a class="btn btn-secondary" href="#faq">FAQ'a Göz at.</a>
         </div>
       </div>
     </section>
@@ -63,105 +63,105 @@
     <section class="section" id="request">
       <div class="container split split-form">
         <div>
-          <p class="eyebrow">Support portal</p>
-          <h2>Request maintenance or technical support</h2>
-          <p class="muted">Fill in the form and you'll get a reference number by e-mail straight away. [Say who picks it up and how fast.]</p>
-          <h3>Before you send a request</h3>
+          <p class="eyebrow">Destek Arayüzü</p>
+          <h2>Bakım veya teknik yardım talep edin.</h2>
+          <p class="muted">Formu doldurun ve mail aracalığıyla bir ticket oluşturun.</p>
+          <h3>İstek yollamadan önce:</h3>
           <ul class="check-list">
-            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Check the <a href="#faq">FAQ</a>, many common issues have a quick fix.</span></li>
-            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Note which device or room the problem is in.</span></li>
-            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Tell us what you already tried (restarting, new batteries, …).</span></li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span> <a href="#faq">FAQ</a> Çoğu basit problemi çözüyor.</span></li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Problemin hangi cihaz veya odada olduğunu tespit edin.</span></li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Zaten daha önceden denediğiniz şeyleri söyleyin.</span></li>
           </ul>
-          <h3 style="margin-top:2rem">Response times</h3>
+          <h3 style="margin-top:2rem">Cevap süreleri</h3>
           <dl class="facts">
-            <div><dt>Urgent</dt><dd>[e.g. Same working day]</dd></div>
-            <div><dt>Normal</dt><dd>[e.g. Within 1 working day]</dd></div>
-            <div><dt>Maintenance visit</dt><dd>[e.g. Planned within 5 working days]</dd></div>
+            <div><dt>Hızlı</dt><dd>Aynı iş günü</dd></div>
+            <div><dt>Normal</dt><dd>Ortalama 1 iş günü</dd></div>
+            <div><dt>Maintenance visit</dt><dd>Ortalama 7 iş günü</dd></div>
           </dl>
         </div>
 
         <div>
           <form class="card card-pad form" id="support-form" data-endpoint="/api/support">
-            <h2>Your request</h2>
+            <h2>Talebiniz</h2>
             <div class="form-row">
               <div class="field">
-                <label for="s-type">What do you need?</label>
+                <label for="s-type">Neye ihtiyacınız var?</label>
                 <select id="s-type" name="type" required>
-                  <option>Technical support (remote help)</option>
-                  <option>Maintenance visit</option>
-                  <option>Repair or replacement</option>
-                  <option>Change or extend my system</option>
-                  <option>Something else</option>
+                  <option>Teknik destek (uzaktan yardım)</option>
+                  <option>Bakım ziyareti</option>
+                  <option>Onarım veya değişim</option>
+                  <option>Sistemimi değiştirme veya genişletme</option>
+                  <option>Diğer</option>
                 </select>
               </div>
               <div class="field">
-                <label for="s-urgency">How urgent is it?</label>
+                <label for="s-urgency">Ne kadar acil?</label>
                 <select id="s-urgency" name="urgency" required>
                   <option>Normal</option>
-                  <option>Low: whenever it suits you</option>
-                  <option>Urgent: something important isn't working</option>
+                  <option>Düşük: size uygun bir zamanda</option>
+                  <option>Acil: önemli bir şey çalışmıyor</option>
                 </select>
               </div>
             </div>
             <div class="form-row">
               <div class="field">
-                <label for="s-name">Name</label>
+                <label for="s-name">Ad soyad</label>
                 <input id="s-name" name="name" autocomplete="name" required maxlength="100">
               </div>
               <div class="field">
-                <label for="s-email">E-mail</label>
+                <label for="s-email">E-posta</label>
                 <input id="s-email" name="email" type="email" autocomplete="email" required maxlength="254">
               </div>
             </div>
             <div class="form-row">
               <div class="field">
-                <label for="s-phone">Phone <span class="optional">(optional)</span></label>
+                <label for="s-phone">Telefon <span class="optional">(isteğe bağlı)</span></label>
                 <input id="s-phone" name="phone" type="tel" autocomplete="tel" maxlength="40">
               </div>
               <div class="field">
-                <label for="s-reference">Order or customer number <span class="optional">(optional)</span></label>
+                <label for="s-reference">Sipariş veya müşteri numarası <span class="optional">(isteğe bağlı)</span></label>
                 <input id="s-reference" name="reference" maxlength="60">
               </div>
             </div>
             <div class="field">
-              <label for="s-address">Installation address <span class="optional">(for visits)</span></label>
-              <input id="s-address" name="address" autocomplete="street-address" maxlength="200" placeholder="Street and number, postcode, city">
+              <label for="s-address">Kurulum adresi <span class="optional">(ziyaretler için)</span></label>
+              <input id="s-address" name="address" autocomplete="street-address" maxlength="200" placeholder="Mahalle, cadde/sokak, no, ilçe / il">
             </div>
             <div class="form-row">
               <div class="field">
-                <label for="s-product">Which product or package? <span class="optional">(optional)</span></label>
+                <label for="s-product">Hangi ürün veya paket? <span class="optional">(isteğe bağlı)</span></label>
                 <select id="s-product" name="product" data-products>
-                  <option value="">Not sure / several</option>
+                  <option value="">Emin değilim / birkaç tane</option>
                 </select>
               </div>
               <div class="field">
-                <label for="s-date">Preferred visit date <span class="optional">(optional)</span></label>
+                <label for="s-date">Tercih edilen ziyaret tarihi <span class="optional">(isteğe bağlı)</span></label>
                 <input id="s-date" name="date" type="date">
               </div>
             </div>
             <div class="field">
-              <label for="s-message">Describe the problem</label>
-              <textarea id="s-message" name="message" required maxlength="5000" placeholder="What happens, since when, and what have you tried?"></textarea>
+              <label for="s-message">Sorunu anlatın</label>
+              <textarea id="s-message" name="message" required maxlength="5000" placeholder="Ne oluyor, ne zamandan beri ve neler denediniz?"></textarea>
             </div>
             <label class="checkbox">
               <input type="checkbox" name="consent" value="yes" required>
-              <span>I agree that [Company] uses my details to handle this request, as described in the <a href="/privacy.html">privacy policy</a>.</span>
+              <span>Bilgilerimin bu talebin işlenmesi için <a href="/privacy.html">gizlilik politikasında</a> açıklandığı şekilde Evra tarafından kullanılmasını kabul ediyorum.</span>
             </label>
             <div class="hp-field" aria-hidden="true">
-              <label for="s-website">Leave this empty</label>
+              <label for="s-website">Bu alanı boş bırakın</label>
               <input id="s-website" name="website" tabindex="-1" autocomplete="off">
             </div>
             <div class="turnstile-slot"></div>
             <p class="status is-error" data-status role="alert" hidden></p>
-            <button class="btn btn-primary" type="submit">Send request</button>
+            <button class="btn btn-primary" type="submit">Talebi gönder</button>
           </form>
 
           <div class="card form-success" data-success-for="support-form" tabindex="-1" hidden>
             <span class="feature-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
-            <h2>Request received</h2>
-            <p class="muted">Your reference number is</p>
+            <h2>Talebiniz alındı</h2>
+            <p class="muted">Referans numaranız</p>
             <p class="ticket" data-ticket></p>
-            <p class="muted">We've e-mailed you a confirmation. Mention this number if you contact us about it. [Say what happens next.]</p>
+            <p class="muted">E-posta adresinize bir onay gönderdik. Bu talep hakkında bize ulaştığınızda bu numarayı belirtin. [Sonraki adımı yazın.]</p>
           </div>
         </div>
       </div>

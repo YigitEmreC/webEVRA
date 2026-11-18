@@ -21,17 +21,17 @@ export async function onRequestPost({ request, env }) {
     name: line(body.name, 100),
     email: line(body.email, 254),
     phone: line(body.phone, 40),
-    topic: line(body.topic, 80) || "General question",
+    topic: line(body.topic, 80) || "Genel soru",
     message: text(body.message, 5000),
   };
   if (!form.name || !isEmail(form.email) || !form.message || !body.consent) {
-    return json({ error: "Please fill in your name, a valid e-mail address and a message, and tick the consent box." }, 400);
+    return json({ error: "Lütfen adınızı, geçerli bir e-posta adresini ve mesajınızı girin, onay kutusunu işaretleyin." }, 400);
   }
   if (!(await passesTurnstile(env, body["cf-turnstile-response"], request.headers.get("CF-Connecting-IP")))) {
-    return json({ error: "The spam check failed. Please reload the page and try again." }, 400);
+    return json({ error: "Spam kontrolü başarısız oldu. Lütfen sayfayı yenileyip tekrar deneyin." }, 400);
   }
   if (!emailConfigured(env) || !env.CONTACT_TO) {
-    return json({ error: "The contact form isn't connected yet. Please e-mail us directly." }, 503);
+    return json({ error: "İletişim formu henüz bağlı değil. Lütfen bize doğrudan e-posta gönderin." }, 503);
   }
 
   try {
@@ -49,7 +49,7 @@ export async function onRequestPost({ request, env }) {
     });
   } catch (err) {
     console.error("contact: sending to company failed", err);
-    return json({ error: "Your message couldn't be sent. Please try again later or e-mail us directly." }, 502);
+    return json({ error: "Mesajınız gönderilemedi. Lütfen daha sonra tekrar deneyin veya bize doğrudan e-posta gönderin." }, 502);
   }
 
   try {

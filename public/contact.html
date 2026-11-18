@@ -88,55 +88,55 @@
         <!-- ===== E-MAIL BOT: the message is e-mailed to you and the sender gets an automatic confirmation ===== -->
         <div>
           <form class="card card-pad form" id="contact-form" data-endpoint="/api/contact">
-            <h2>Send us a message</h2>
+            <h2>Bize mesaj gönderin</h2>
             <div class="form-row">
               <div class="field">
-                <label for="c-name">Name</label>
+                <label for="c-name">Ad soyad</label>
                 <input id="c-name" name="name" autocomplete="name" required maxlength="100">
               </div>
               <div class="field">
-                <label for="c-email">E-mail</label>
+                <label for="c-email">E-posta</label>
                 <input id="c-email" name="email" type="email" autocomplete="email" required maxlength="254">
               </div>
             </div>
             <div class="form-row">
               <div class="field">
-                <label for="c-phone">Phone <span class="optional">(optional)</span></label>
+                <label for="c-phone">Telefon <span class="optional">(isteğe bağlı)</span></label>
                 <input id="c-phone" name="phone" type="tel" autocomplete="tel" maxlength="40">
               </div>
               <div class="field">
-                <label for="c-topic">Topic</label>
+                <label for="c-topic">Konu</label>
                 <select id="c-topic" name="topic">
-                  <option>General question</option>
-                  <option>Advice or a quote</option>
-                  <option>Question about an order</option>
-                  <option>Business or partnership</option>
-                  <option>Something else</option>
+                  <option>Genel soru</option>
+                  <option>Danışmanlık veya fiyat teklifi</option>
+                  <option>Sipariş hakkında soru</option>
+                  <option>Kurumsal veya iş birliği</option>
+                  <option>Diğer</option>
                 </select>
               </div>
             </div>
             <div class="field">
-              <label for="c-message">Message</label>
+              <label for="c-message">Mesajınız</label>
               <textarea id="c-message" name="message" required maxlength="5000"></textarea>
             </div>
             <label class="checkbox">
               <input type="checkbox" name="consent" value="yes" required>
-              <span>I agree that [Company] uses my details to answer my message, as described in the <a href="/privacy.html">privacy policy</a>.</span>
+              <span>Bilgilerimin mesajıma yanıt verilmesi için <a href="/privacy.html">gizlilik politikasında</a> açıklandığı şekilde Evra tarafından kullanılmasını kabul ediyorum.</span>
             </label>
             <!-- Spam trap: hidden from people, bots fill it in -->
             <div class="hp-field" aria-hidden="true">
-              <label for="c-website">Leave this empty</label>
+              <label for="c-website">Bu alanı boş bırakın</label>
               <input id="c-website" name="website" tabindex="-1" autocomplete="off">
             </div>
             <div class="turnstile-slot"></div>
             <p class="status is-error" data-status role="alert" hidden></p>
-            <button class="btn btn-primary" type="submit">Send message</button>
+            <button class="btn btn-primary" type="submit">Mesajı gönder</button>
           </form>
 
           <div class="card form-success" data-success-for="contact-form" tabindex="-1" hidden>
             <span class="feature-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.5 2.5-10 10M21.5 2.5 15 21l-3.5-8.5L3 9l18.5-6.5Z"/></svg></span>
-            <h2>Thanks, your message is on its way</h2>
-            <p class="muted">We've sent a confirmation to your e-mail address. [We usually reply within one working day.]</p>
+            <h2>Teşekkürler, mesajınız iletildi</h2>
+            <p class="muted">E-posta adresinize bir onay gönderdik. [Genellikle bir iş günü içinde yanıt veriyoruz.]</p>
           </div>
         </div>
 

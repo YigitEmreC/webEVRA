@@ -20,7 +20,7 @@ export async function onRequestPost({ request, env }) {
   if (body.website) return json({ ok: true, ticket: ticketId() }); // spam trap was filled in
 
   const form = {
-    type: line(body.type, 80) || "Technical support",
+    type: line(body.type, 80) || "Teknik destek",
     urgency: line(body.urgency, 80) || "Normal",
     name: line(body.name, 100),
     email: line(body.email, 254),
@@ -32,14 +32,14 @@ export async function onRequestPost({ request, env }) {
     message: text(body.message, 5000),
   };
   if (!form.name || !isEmail(form.email) || !form.message || !body.consent) {
-    return json({ error: "Please fill in your name, a valid e-mail address and a description, and tick the consent box." }, 400);
+    return json({ error: "Lütfen adınızı, geçerli bir e-posta adresini ve sorun açıklamasını girin, onay kutusunu işaretleyin." }, 400);
   }
   if (!(await passesTurnstile(env, body["cf-turnstile-response"], request.headers.get("CF-Connecting-IP")))) {
-    return json({ error: "The spam check failed. Please reload the page and try again." }, 400);
+    return json({ error: "Spam kontrolü başarısız oldu. Lütfen sayfayı yenileyip tekrar deneyin." }, 400);
   }
   const to = env.SUPPORT_TO || env.CONTACT_TO;
   if (!emailConfigured(env) || !to) {
-    return json({ error: "The support portal isn't connected yet. Please e-mail or call us directly." }, 503);
+    return json({ error: "Destek portalı henüz bağlı değil. Lütfen bize e-posta gönderin veya telefonla ulaşın." }, 503);
   }
 
   const ticket = ticketId();
@@ -64,7 +64,7 @@ export async function onRequestPost({ request, env }) {
     });
   } catch (err) {
     console.error("support: sending to company failed", err);
-    return json({ error: "Your request couldn't be sent. Please try again later or contact us directly." }, 502);
+    return json({ error: "Talebiniz gönderilemedi. Lütfen daha sonra tekrar deneyin veya bize doğrudan ulaşın." }, 502);
   }
 
   try {

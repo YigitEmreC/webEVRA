@@ -24,7 +24,7 @@ async function submit(event, form) {
   const label = button.textContent;
   status.hidden = true;
   button.disabled = true;
-  button.textContent = "Sending…";
+  button.textContent = "Gönderiliyor…";
 
   try {
     const res = await fetch(form.dataset.endpoint, {
@@ -33,7 +33,7 @@ async function submit(event, form) {
       body: JSON.stringify(Object.fromEntries(new FormData(form))),
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || "Something went wrong. Please try again, or e-mail us directly.");
+    if (!res.ok) throw new Error(data.error || "Bir sorun oluştu. Lütfen tekrar deneyin veya bize doğrudan e-posta gönderin.");
     showSuccess(form, data);
   } catch (err) {
     status.textContent = err.message;
@@ -59,7 +59,7 @@ function fillProductSelects() {
   document.querySelectorAll("select[data-products]").forEach((select) => {
     const group = (label, list) =>
       `<optgroup label="${label}">${list.map((i) => `<option value="${escapeHtml(i.id)}">${escapeHtml(i.name)}</option>`).join("")}</optgroup>`;
-    select.insertAdjacentHTML("beforeend", group("Packages", packages) + group("Products", products));
+    select.insertAdjacentHTML("beforeend", group("Paketler", packages) + group("Ürünler", products));
   });
 }
 
