@@ -2,7 +2,7 @@
 // featured ones on the home page (#featured-packages).
 
 import { packages } from "../../data/catalog.js";
-import { findItem, formatMoney, packageValueCents, toCents } from "./pricing.js";
+import { formatMoney, packageValueCents, toCents } from "./pricing.js";
 import { addToCart } from "./cart-store.js";
 import { escapeHtml, icon, toast } from "./ui.js";
 
@@ -33,16 +33,11 @@ function render(root, list, compact) {
 function card(p, compact) {
   const price = toCents(p.price);
   const value = packageValueCents(p);
-  const items = p.items
-    .map(({ id, qty }) => ({ item: findItem(id), qty }))
-    .filter(({ item }) => item);
-  const shown = compact ? items.slice(0, COMPACT_ITEMS) : items;
-  const more = items.length - shown.length;
-
-  const included = shown
-    .map(({ item, qty }) => `<li><span class="qty">${qty}×</span>${escapeHtml(item.name)}</li>`)
-    .join("");
-  const highlights = (p.highlights || [])
+  // Show the package's features (highlights), not the list of devices inside.
+  const all = p.highlights || [];
+  const shown = compact ? all.slice(0, COMPACT_ITEMS) : all;
+  const more = all.length - shown.length;
+  const highlights = shown
     .map((h) => `<li>${icon("check")}<span>${escapeHtml(h)}</span></li>`)
     .join("");
 
@@ -57,9 +52,8 @@ function card(p, compact) {
           ${value > price ? `<span class="price-was">Worth ${formatMoney(value)} separately</span>` : ""}
         </p>
         ${compact ? "" : `<p class="card-text">${escapeHtml(p.description)}</p>`}
-        <h4 class="list-title">What's included</h4>
-        <ul class="included-list">${included}${more > 0 ? `<li class="muted">+ ${more} more</li>` : ""}</ul>
-        ${highlights && !compact ? `<ul class="check-list">${highlights}</ul>` : ""}
+        ${highlights ? `<h4 class="list-title">Özellikler</h4><ul class="check-list">${highlights}</ul>` : ""}
+        ${more > 0 ? `<p class="muted">+ ${more} özellik daha</p>` : ""}
       </div>
       <div class="card-footer card-footer-stack">
         <button type="button" class="btn btn-primary" data-order="${escapeHtml(p.id)}">Order now</button>

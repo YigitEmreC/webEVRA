@@ -10,7 +10,7 @@ import { initCartPage } from "./cart-page.js";
 import { initForms } from "./forms.js";
 import { initFaq } from "./faq.js";
 
-const features = [initNav, initActiveLink, initCartBadge, initYear, ensureToast, initProducts, initPackages, initCartPage, initForms, initFaq, initOrderSuccess];
+const features = [initTheme, initNav, initActiveLink, initCartBadge, initYear, ensureToast, initProducts, initPackages, initCartPage, initForms, initFaq, initOrderSuccess];
 
 for (const init of features) {
   try {
@@ -18,6 +18,33 @@ for (const init of features) {
   } catch (err) {
     console.error(`[site] ${init.name} failed:`, err);
   }
+}
+
+// Dark mode switch in the header. The saved choice is applied before the page
+// draws by a one-line script in each page's <head>, so there is no flash.
+function initTheme() {
+  const root = document.documentElement;
+  const sync = () => {
+    const dark = root.dataset.theme === "dark";
+    document.querySelectorAll(".theme-toggle").forEach((btn) => {
+      btn.setAttribute("aria-pressed", String(dark));
+      const label = dark ? "Aydınlık mod" : "Karanlık mod";
+      btn.setAttribute("aria-label", label);
+      btn.title = label;
+    });
+  };
+  document.querySelectorAll(".theme-toggle").forEach((btn) =>
+    btn.addEventListener("click", () => {
+      const dark = root.dataset.theme !== "dark";
+      if (dark) root.dataset.theme = "dark";
+      else delete root.dataset.theme;
+      try {
+        localStorage.setItem("theme", dark ? "dark" : "light");
+      } catch {}
+      sync();
+    })
+  );
+  sync();
 }
 
 function initNav() {

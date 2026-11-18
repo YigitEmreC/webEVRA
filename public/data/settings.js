@@ -10,17 +10,17 @@ export const settings = {
 
   // ISO currency code and number format:
   // "en-IE" shows €1,149.50 (English style), "nl-NL" shows € 1.149,50 (Dutch style).
-  currency: "EUR",
-  locale: "en-IE",
+  currency: "TRY",
+  locale: "tr-TR",
 
   shipping: {
     // Countries you deliver to (two-letter codes). Stripe only accepts
     // delivery addresses in these countries.
-    countries: ["NL", "BE"],
+    countries: ["TR"],
     // Flat delivery fee in euros. Set to 0 for free delivery.
-    fee: 6.95,
+    fee: 0,
     // Orders at or above this amount ship free. Set to null to switch off.
-    freeFrom: 150,
+    freeFrom: null,
     // Name of the delivery option shown at checkout.
     label: "Standard delivery",
   },
