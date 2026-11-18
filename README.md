@@ -77,13 +77,14 @@ If the video is larger, upload it to YouTube and swap the `<video>…</video>` b
 
 ## 2. Preview on your computer
 
-**Pages only (no forms or checkout).** With Python installed:
+**Pages only (no forms or checkout).** This needs [Python](https://www.python.org/downloads/).
 
-```bash
-python -m http.server 8000 --directory public
-```
+- **Windows:** double-click **`start-local.bat`**. Your browser opens the site. Close the black window to stop it.
+- **Mac/Linux:** run `python3 tools/serve.py`.
 
-Then open http://localhost:8000. Opening the HTML files by double-clicking doesn't work, because the browser blocks the scripts on `file://` pages.
+Edit files in `public/` and refresh the browser to see the change. In this preview the forms and the checkout show a "switched off" message.
+
+Opening the HTML files directly by double-clicking them doesn't work, because the browser blocks the scripts on `file://` pages.
 
 **Everything, including forms and checkout.** This needs [Node.js](https://nodejs.org). Copy `.dev.vars.example` to `.dev.vars`, fill in test keys, then run:
 

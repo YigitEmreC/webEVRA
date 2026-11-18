@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Products · [Company]</title>
+  <meta name="description" content="[One sentence about the products you supply and install.]">
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <script type="module" src="/assets/js/main.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- ===== HEADER — identical on every page. Use find-and-replace across all files to change it. ===== -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/">
+        <img src="/assets/img/logo.svg" alt="" width="32" height="32">
+        <span>[Company]</span>
+      </a>
+      <nav class="site-nav" id="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/products.html">Products</a></li>
+          <li><a href="/packages.html">Packages</a></li>
+          <li><a href="/services.html">Services</a></li>
+          <li><a href="/information.html">Information</a></li>
+          <li><a href="/support.html">Help &amp; support</a></li>
+          <li><a href="/contact.html">Contact</a></li>
+        </ul>
+      </nav>
+      <a class="cart-link" href="/cart.html" aria-label="Cart">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3h2.6l2.4 11.4a1.6 1.6 0 0 0 1.6 1.3h8.5a1.6 1.6 0 0 0 1.5-1.2L21 7H6"/></svg>
+        <span class="cart-count" data-cart-count hidden>0</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg class="icon icon-menu" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="icon icon-close" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="page-hero">
+      <div class="container">
+        <p class="eyebrow">Shop</p>
+        <h1>Products</h1>
+        <p class="lead">[Introduction: the devices you supply and support, and whether you also install single products.]</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <!-- The product list is filled from public/data/catalog.js. Edit products and prices there. -->
+        <div class="toolbar">
+          <div class="chips" id="product-filters" role="group" aria-label="Filter by category"></div>
+          <label class="search">
+            <span class="sr-only">Search products</span>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="search" id="product-search" placeholder="Search products" autocomplete="off">
+          </label>
+        </div>
+        <p class="result-count" id="product-count" aria-live="polite"></p>
+        <div class="grid product-grid" id="product-list">
+          <noscript><p>Please turn on JavaScript to see our products.</p></noscript>
+        </div>
+        <p class="empty" id="product-empty" hidden>No products match your search.</p>
+        <p class="note">All prices include VAT. [Add a note, e.g. "Installation of single products is quoted separately."]</p>
+      </div>
+    </section>
+
+    <section class="section section-alt">
+      <div class="container">
+        <div class="cta">
+          <div>
+            <h2>Want it all installed for you?</h2>
+            <p>[One sentence pointing to packages, e.g. Our packages combine the right devices with professional installation.]</p>
+          </div>
+          <a class="btn" href="/packages.html">View packages</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== FOOTER — identical on every page. Use find-and-replace across all files to change it. ===== -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a class="brand" href="/">
+          <img src="/assets/img/logo.svg" alt="" width="32" height="32">
+          <span>[Company]</span>
+        </a>
+        <p class="muted">[One sentence about the company, e.g. what you install and where.]</p>
+      </div>
+      <div>
+        <h2>Shop</h2>
+        <ul class="footer-links">
+          <li><a href="/products.html">Products</a></li>
+          <li><a href="/packages.html">Packages</a></li>
+          <li><a href="/cart.html">Cart</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Company</h2>
+        <ul class="footer-links">
+          <li><a href="/services.html">Services</a></li>
+          <li><a href="/information.html">Information</a></li>
+          <li><a href="/contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Help</h2>
+        <ul class="footer-links">
+          <li><a href="/support.html#request">Request support</a></li>
+          <li><a href="/support.html#faq">FAQ</a></li>
+          <li><a href="/services.html#aftercare">Maintenance</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Contact</h2>
+        <ul class="footer-links">
+          <li><a href="mailto:[info@yourdomain.com]">[info@yourdomain.com]</a></li>
+          <li><a href="tel:[+31000000000]">[+31 (0)00 000 0000]</a></li>
+          <li class="muted">[Street 1, 1234 AB City]</li>
+        </ul>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>© <span data-year>2026</span> [Company] · KvK [00000000] · VAT [NL000000000B01]</p>
+      <p><a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a></p>
+    </div>
+  </footer>
+</body>
+</html>

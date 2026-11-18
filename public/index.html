@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>[Company] · [Short tagline]</title>
+  <meta name="description" content="[One or two sentences describing the company for search engines.]">
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <script type="module" src="/assets/js/main.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- ===== HEADER — identical on every page. Use find-and-replace across all files to change it. ===== -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/">
+        <img src="/assets/img/logo.svg" alt="" width="32" height="32">
+        <span>[Company]</span>
+      </a>
+      <nav class="site-nav" id="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/products.html">Products</a></li>
+          <li><a href="/packages.html">Packages</a></li>
+          <li><a href="/services.html">Services</a></li>
+          <li><a href="/information.html">Information</a></li>
+          <li><a href="/support.html">Help &amp; support</a></li>
+          <li><a href="/contact.html">Contact</a></li>
+        </ul>
+      </nav>
+      <a class="cart-link" href="/cart.html" aria-label="Cart">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3h2.6l2.4 11.4a1.6 1.6 0 0 0 1.6 1.3h8.5a1.6 1.6 0 0 0 1.5-1.2L21 7H6"/></svg>
+        <span class="cart-count" data-cart-count hidden>0</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg class="icon icon-menu" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="icon icon-close" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <!-- ===== INTRODUCTION + PREVIEW VIDEO ===== -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <p class="eyebrow">[Short tagline]</p>
+          <h1>[Headline: what you do, in one line]</h1>
+          <p class="lead">[Introduction: two or three sentences on what [Company] does, who it is for and why customers choose you.]</p>
+          <div class="actions">
+            <a class="btn btn-primary" href="/packages.html">View packages</a>
+            <a class="btn btn-secondary" href="/products.html">Browse products</a>
+          </div>
+          <ul class="check-list hero-points">
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>[Key benefit, e.g. installed by our own technicians]</span></li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>[Key benefit, e.g. works without a cloud subscription]</span></li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>[Key benefit, e.g. support after installation]</span></li>
+          </ul>
+        </div>
+        <div>
+          <!-- EDIT: preview video of the setup.
+               Put your video at public/assets/video/setup-preview.mp4 (max 25 MiB on Cloudflare Pages)
+               and replace the poster image. Prefer YouTube? See README → "Home page video". -->
+          <figure class="video-frame">
+            <video controls playsinline preload="none" poster="/assets/img/video-poster.svg">
+              <source src="/assets/video/setup-preview.mp4" type="video/mp4">
+              Your browser can't play this video.
+            </video>
+            <figcaption>[Caption: what the video shows, e.g. a complete setup in a two-bedroom apartment]</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== COMPANY DETAILS ===== -->
+    <section class="section">
+      <div class="container split split-center">
+        <div>
+          <p class="eyebrow">Who we are</p>
+          <h2>[Company] in short</h2>
+          <p>[Details of the company: when and why it was started, what you specialise in and the area you work in.]</p>
+          <p>[A second paragraph, e.g. how you work and what makes you different.]</p>
+          <a class="text-link" href="/information.html">More about us →</a>
+        </div>
+        <dl class="stats">
+          <div class="stat"><dt>Founded</dt><dd>[Year]</dd></div>
+          <div class="stat"><dt>Service area</dt><dd>[Region]</dd></div>
+          <div class="stat"><dt>Homes installed</dt><dd>[Number]</dd></div>
+          <div class="stat"><dt>Supported devices</dt><dd>[Number]</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- ===== WHAT WE OFFER ===== -->
+    <section class="section section-alt">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">What we offer</p>
+          <h2>[Heading, e.g. Everything for a smarter home]</h2>
+          <p class="lead">[One sentence that introduces your offer.]</p>
+        </div>
+        <div class="grid grid-4">
+          <a class="card feature" href="/products.html">
+            <span class="feature-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></span>
+            <h3>Products</h3>
+            <p class="muted">[One line about your product range.]</p>
+            <span class="more">See all products →</span>
+          </a>
+          <a class="card feature" href="/packages.html">
+            <span class="feature-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg></span>
+            <h3>Packages</h3>
+            <p class="muted">[One line about your ready-made packages.]</p>
+            <span class="more">Compare packages →</span>
+          </a>
+          <a class="card feature" href="/services.html">
+            <span class="feature-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M9 15.5l2 2 4-4"/></svg></span>
+            <h3>Installation</h3>
+            <p class="muted">[One line about how you install.]</p>
+            <span class="more">How it works →</span>
+          </a>
+          <a class="card feature" href="/support.html">
+            <span class="feature-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="m5.6 5.6 3.6 3.6M14.8 14.8l3.6 3.6M18.4 5.6l-3.6 3.6M9.2 14.8l-3.6 3.6"/></svg></span>
+            <h3>Support</h3>
+            <p class="muted">[One line about support and maintenance.]</p>
+            <span class="more">Get help →</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== FEATURED PACKAGES (filled from public/data/catalog.js — packages with featured: true) ===== -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head section-head-row">
+          <div>
+            <p class="eyebrow">Packages</p>
+            <h2>Popular packages</h2>
+          </div>
+          <a class="btn btn-secondary" href="/packages.html">All packages</a>
+        </div>
+        <div class="grid package-grid" id="featured-packages"></div>
+      </div>
+    </section>
+
+    <!-- ===== HOW IT WORKS ===== -->
+    <section class="section section-alt">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">How it works</p>
+          <h2>[Heading, e.g. From first chat to a working smart home]</h2>
+        </div>
+        <ol class="steps steps-row">
+          <li class="card step"><h3>[Step 1, e.g. Free advice]</h3><p class="muted">[What happens in this step.]</p></li>
+          <li class="card step"><h3>[Step 2, e.g. Installation]</h3><p class="muted">[What happens in this step.]</p></li>
+          <li class="card step"><h3>[Step 3, e.g. Ongoing support]</h3><p class="muted">[What happens in this step.]</p></li>
+        </ol>
+        <p class="note"><a class="text-link" href="/services.html">Read how installation and aftercare work →</a></p>
+      </div>
+    </section>
+
+    <!-- ===== CALL TO ACTION ===== -->
+    <section class="section">
+      <div class="container">
+        <div class="cta">
+          <div>
+            <h2>[Call to action, e.g. Ready to make your home smarter?]</h2>
+            <p>[One supporting sentence, e.g. Tell us about your home and we'll suggest the right setup.]</p>
+          </div>
+          <a class="btn" href="/contact.html">Contact us</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== FOOTER — identical on every page. Use find-and-replace across all files to change it. ===== -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a class="brand" href="/">
+          <img src="/assets/img/logo.svg" alt="" width="32" height="32">
+          <span>[Company]</span>
+        </a>
+        <p class="muted">[One sentence about the company, e.g. what you install and where.]</p>
+      </div>
+      <div>
+        <h2>Shop</h2>
+        <ul class="footer-links">
+          <li><a href="/products.html">Products</a></li>
+          <li><a href="/packages.html">Packages</a></li>
+          <li><a href="/cart.html">Cart</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Company</h2>
+        <ul class="footer-links">
+          <li><a href="/services.html">Services</a></li>
+          <li><a href="/information.html">Information</a></li>
+          <li><a href="/contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Help</h2>
+        <ul class="footer-links">
+          <li><a href="/support.html#request">Request support</a></li>
+          <li><a href="/support.html#faq">FAQ</a></li>
+          <li><a href="/services.html#aftercare">Maintenance</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Contact</h2>
+        <ul class="footer-links">
+          <li><a href="mailto:[info@yourdomain.com]">[info@yourdomain.com]</a></li>
+          <li><a href="tel:[+31000000000]">[+31 (0)00 000 0000]</a></li>
+          <li class="muted">[Street 1, 1234 AB City]</li>
+        </ul>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>© <span data-year>2026</span> [Company] · KvK [00000000] · VAT [NL000000000B01]</p>
+      <p><a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a></p>
+    </div>
+  </footer>
+</body>
+</html>

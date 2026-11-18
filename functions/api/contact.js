@@ -1,0 +1,63 @@
+// POST /api/contact — the contact form's "e-mail bot".
+// 1. E-mails the message to CONTACT_TO (reply goes straight to the visitor).
+// 2. Sends the visitor an automatic confirmation (wording: lib/email-templates.js).
+
+import { json, sameOrigin, readBody, text, line, isEmail, passesTurnstile } from "../../lib/http.js";
+import { emailConfigured, sendEmail, fieldsEmail, textToHtml } from "../../lib/email.js";
+import { contactAutoReply } from "../../lib/email-templates.js";
+
+export async function onRequestPost({ request, env }) {
+  if (!sameOrigin(request)) return json({ error: "Forbidden." }, 403);
+
+  let body;
+  try {
+    body = await readBody(request);
+  } catch {
+    return json({ error: "Invalid request." }, 400);
+  }
+  if (body.website) return json({ ok: true }); // spam trap was filled in
+
+  const form = {
+    name: line(body.name, 100),
+    email: line(body.email, 254),
+    phone: line(body.phone, 40),
+    topic: line(body.topic, 80) || "General question",
+    message: text(body.message, 5000),
+  };
+  if (!form.name || !isEmail(form.email) || !form.message || !body.consent) {
+    return json({ error: "Please fill in your name, a valid e-mail address and a message, and tick the consent box." }, 400);
+  }
+  if (!(await passesTurnstile(env, body["cf-turnstile-response"], request.headers.get("CF-Connecting-IP")))) {
+    return json({ error: "The spam check failed. Please reload the page and try again." }, 400);
+  }
+  if (!emailConfigured(env) || !env.CONTACT_TO) {
+    return json({ error: "The contact form isn't connected yet. Please e-mail us directly." }, 503);
+  }
+
+  try {
+    await sendEmail(env, {
+      to: env.CONTACT_TO,
+      replyTo: form.email,
+      subject: `Website: ${form.topic} – ${form.name}`,
+      ...fieldsEmail("New message from the contact form", [
+        ["Name", form.name],
+        ["E-mail", form.email],
+        ["Phone", form.phone],
+        ["Topic", form.topic],
+        ["Message", form.message],
+      ]),
+    });
+  } catch (err) {
+    console.error("contact: sending to company failed", err);
+    return json({ error: "Your message couldn't be sent. Please try again later or e-mail us directly." }, 502);
+  }
+
+  try {
+    const reply = contactAutoReply(form);
+    await sendEmail(env, { to: form.email, replyTo: env.CONTACT_TO, subject: reply.subject, text: reply.text, html: textToHtml(reply.text) });
+  } catch (err) {
+    console.error("contact: auto-reply failed", err); // the message itself did arrive, so still report success
+  }
+
+  return json({ ok: true });
+}

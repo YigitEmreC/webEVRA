@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Help &amp; support · [Company]</title>
+  <meta name="description" content="Request maintenance or technical support, or find answers in our FAQ.">
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <script type="module" src="/assets/js/main.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- ===== HEADER — identical on every page. Use find-and-replace across all files to change it. ===== -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/">
+        <img src="/assets/img/logo.svg" alt="" width="32" height="32">
+        <span>[Company]</span>
+      </a>
+      <nav class="site-nav" id="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/products.html">Products</a></li>
+          <li><a href="/packages.html">Packages</a></li>
+          <li><a href="/services.html">Services</a></li>
+          <li><a href="/information.html">Information</a></li>
+          <li><a href="/support.html">Help &amp; support</a></li>
+          <li><a href="/contact.html">Contact</a></li>
+        </ul>
+      </nav>
+      <a class="cart-link" href="/cart.html" aria-label="Cart">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3h2.6l2.4 11.4a1.6 1.6 0 0 0 1.6 1.3h8.5a1.6 1.6 0 0 0 1.5-1.2L21 7H6"/></svg>
+        <span class="cart-count" data-cart-count hidden>0</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg class="icon icon-menu" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="icon icon-close" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="page-hero">
+      <div class="container">
+        <p class="eyebrow">Help &amp; support</p>
+        <h1>How can we help?</h1>
+        <p class="lead">Request maintenance or technical support, or find a quick answer in the FAQ below.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="#request">Request support</a>
+          <a class="btn btn-secondary" href="#faq">Browse the FAQ</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SUPPORT / MAINTENANCE PORTAL ===== -->
+    <section class="section" id="request">
+      <div class="container split split-form">
+        <div>
+          <p class="eyebrow">Support portal</p>
+          <h2>Request maintenance or technical support</h2>
+          <p class="muted">Fill in the form and you'll get a reference number by e-mail straight away. [Say who picks it up and how fast.]</p>
+          <h3>Before you send a request</h3>
+          <ul class="check-list">
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Check the <a href="#faq">FAQ</a>, many common issues have a quick fix.</span></li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Note which device or room the problem is in.</span></li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Tell us what you already tried (restarting, new batteries, …).</span></li>
+          </ul>
+          <h3 style="margin-top:2rem">Response times</h3>
+          <dl class="facts">
+            <div><dt>Urgent</dt><dd>[e.g. Same working day]</dd></div>
+            <div><dt>Normal</dt><dd>[e.g. Within 1 working day]</dd></div>
+            <div><dt>Maintenance visit</dt><dd>[e.g. Planned within 5 working days]</dd></div>
+          </dl>
+        </div>
+
+        <div>
+          <form class="card card-pad form" id="support-form" data-endpoint="/api/support">
+            <h2>Your request</h2>
+            <div class="form-row">
+              <div class="field">
+                <label for="s-type">What do you need?</label>
+                <select id="s-type" name="type" required>
+                  <option>Technical support (remote help)</option>
+                  <option>Maintenance visit</option>
+                  <option>Repair or replacement</option>
+                  <option>Change or extend my system</option>
+                  <option>Something else</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="s-urgency">How urgent is it?</label>
+                <select id="s-urgency" name="urgency" required>
+                  <option>Normal</option>
+                  <option>Low: whenever it suits you</option>
+                  <option>Urgent: something important isn't working</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <label for="s-name">Name</label>
+                <input id="s-name" name="name" autocomplete="name" required maxlength="100">
+              </div>
+              <div class="field">
+                <label for="s-email">E-mail</label>
+                <input id="s-email" name="email" type="email" autocomplete="email" required maxlength="254">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <label for="s-phone">Phone <span class="optional">(optional)</span></label>
+                <input id="s-phone" name="phone" type="tel" autocomplete="tel" maxlength="40">
+              </div>
+              <div class="field">
+                <label for="s-reference">Order or customer number <span class="optional">(optional)</span></label>
+                <input id="s-reference" name="reference" maxlength="60">
+              </div>
+            </div>
+            <div class="field">
+              <label for="s-address">Installation address <span class="optional">(for visits)</span></label>
+              <input id="s-address" name="address" autocomplete="street-address" maxlength="200" placeholder="Street and number, postcode, city">
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <label for="s-product">Which product or package? <span class="optional">(optional)</span></label>
+                <select id="s-product" name="product" data-products>
+                  <option value="">Not sure / several</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="s-date">Preferred visit date <span class="optional">(optional)</span></label>
+                <input id="s-date" name="date" type="date">
+              </div>
+            </div>
+            <div class="field">
+              <label for="s-message">Describe the problem</label>
+              <textarea id="s-message" name="message" required maxlength="5000" placeholder="What happens, since when, and what have you tried?"></textarea>
+            </div>
+            <label class="checkbox">
+              <input type="checkbox" name="consent" value="yes" required>
+              <span>I agree that [Company] uses my details to handle this request, as described in the <a href="/privacy.html">privacy policy</a>.</span>
+            </label>
+            <div class="hp-field" aria-hidden="true">
+              <label for="s-website">Leave this empty</label>
+              <input id="s-website" name="website" tabindex="-1" autocomplete="off">
+            </div>
+            <div class="turnstile-slot"></div>
+            <p class="status is-error" data-status role="alert" hidden></p>
+            <button class="btn btn-primary" type="submit">Send request</button>
+          </form>
+
+          <div class="card form-success" data-success-for="support-form" tabindex="-1" hidden>
+            <span class="feature-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+            <h2>Request received</h2>
+            <p class="muted">Your reference number is</p>
+            <p class="ticket" data-ticket></p>
+            <p class="muted">We've e-mailed you a confirmation. Mention this number if you contact us about it. [Say what happens next.]</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== FAQ — add, edit or remove <details> blocks. Each group becomes a filter button. ===== -->
+    <section class="section section-alt" id="faq">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">FAQ</p>
+          <h2>Frequently asked questions</h2>
+          <p class="lead">Quick answers and troubleshooting steps. Can't find it? <a href="#request">Send us a request</a>.</p>
+        </div>
+
+        <div class="faq-tools">
+          <label class="search">
+            <span class="sr-only">Search the FAQ</span>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="search" id="faq-search" placeholder="Search, e.g. offline, battery, Wi-Fi" autocomplete="off">
+          </label>
+          <div class="chips" data-faq-chips role="group" aria-label="Filter by topic"></div>
+        </div>
+
+        <div class="faq-group" id="faq-troubleshooting">
+          <h3>Troubleshooting</h3>
+          <details class="faq-item" id="faq-offline">
+            <summary>A device shows as "offline" or "unavailable" in the app</summary>
+            <div class="faq-answer">
+              <ol>
+                <li>Check that the device has power: plugged in, switched on at the wall, or fresh batteries.</li>
+                <li>Check that your internet router and the smart home hub are both on.</li>
+                <li>Wi-Fi devices: make sure your Wi-Fi name and password haven't changed recently.</li>
+                <li>Battery sensors can take a few minutes to report back after a restart. Press the button on the sensor to wake it up.</li>
+                <li>Still offline after 15 minutes? <a href="#request">Send a support request</a> and mention which device it is.</li>
+              </ol>
+            </div>
+          </details>
+          <details class="faq-item" id="faq-automation">
+            <summary>An automation didn't run (for example the lights didn't switch on)</summary>
+            <div class="faq-answer">
+              <ol>
+                <li>Check that all devices involved are online (see the question above).</li>
+                <li>Check the time and conditions of the automation in the app, for example "only after sunset".</li>
+                <li>If a motion sensor is involved: it only reports again after a short pause, so walk out of view for a minute and try again.</li>
+              </ol>
+              <p>[Add how customers can see or change their automations, or whether they should ask you.]</p>
+            </div>
+          </details>
+          <details class="faq-item" id="faq-battery">
+            <summary>How do I replace the battery in a sensor?</summary>
+            <div class="faq-answer">
+              <p>Most sensors open by sliding or twisting off the back cover. Note the battery type printed inside (often a CR2032 or CR2450 coin cell), insert the new one the same way round and close the cover. The sensor reconnects by itself within a few minutes.</p>
+              <p>[Add device-specific instructions or photos if needed.]</p>
+            </div>
+          </details>
+          <details class="faq-item" id="faq-wifi">
+            <summary>I've got a new router or changed my Wi-Fi password</summary>
+            <div class="faq-answer">
+              <p>Wi-Fi devices need to be told about the new network. [Explain whether customers can do this themselves in the app, or whether you do it remotely or during a visit.]</p>
+            </div>
+          </details>
+          <details class="faq-item" id="faq-internet">
+            <summary>Does the system still work when the internet is down?</summary>
+            <div class="faq-answer">
+              <p>[Explain what keeps working locally (for example automations and the wall panel) and what needs internet (for example control from outside the home).]</p>
+            </div>
+          </details>
+        </div>
+
+        <div class="faq-group" id="faq-ordering">
+          <h3>Ordering &amp; payment</h3>
+          <details class="faq-item">
+            <summary>How can I pay?</summary>
+            <div class="faq-answer"><p>[List the payment methods you enable in Stripe, e.g. iDEAL, credit card, Bancontact.]</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>When will my order be delivered?</summary>
+            <div class="faq-answer"><p>[Delivery times, and how installation is scheduled.]</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Can I cancel or return my order?</summary>
+            <div class="faq-answer"><p>[Your cancellation and return policy, in line with the <a href="/terms.html">terms and conditions</a>.]</p></div>
+          </details>
+        </div>
+
+        <div class="faq-group" id="faq-installation">
+          <h3>Installation</h3>
+          <details class="faq-item">
+            <summary>How long does an installation take?</summary>
+            <div class="faq-answer"><p>[Typical duration per package or home size.]</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Do I need to prepare anything?</summary>
+            <div class="faq-answer"><p>[e.g. Working Wi-Fi, access to the meter cupboard, someone at home who will use the system.]</p></div>
+          </details>
+        </div>
+
+        <div class="faq-group" id="faq-maintenance">
+          <h3>Maintenance &amp; warranty</h3>
+          <details class="faq-item">
+            <summary>What does the warranty cover?</summary>
+            <div class="faq-answer"><p>[Warranty on devices and on installation work, and how long it lasts.]</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Do I need regular maintenance?</summary>
+            <div class="faq-answer"><p>[e.g. Battery replacements, updates, periodic check-ups. See also <a href="/services.html#aftercare">aftercare</a>.]</p></div>
+          </details>
+        </div>
+
+        <p class="empty" id="faq-empty" hidden>No questions match your search. <a href="#request">Ask us directly</a>.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== FOOTER — identical on every page. Use find-and-replace across all files to change it. ===== -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a class="brand" href="/">
+          <img src="/assets/img/logo.svg" alt="" width="32" height="32">
+          <span>[Company]</span>
+        </a>
+        <p class="muted">[One sentence about the company, e.g. what you install and where.]</p>
+      </div>
+      <div>
+        <h2>Shop</h2>
+        <ul class="footer-links">
+          <li><a href="/products.html">Products</a></li>
+          <li><a href="/packages.html">Packages</a></li>
+          <li><a href="/cart.html">Cart</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Company</h2>
+        <ul class="footer-links">
+          <li><a href="/services.html">Services</a></li>
+          <li><a href="/information.html">Information</a></li>
+          <li><a href="/contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Help</h2>
+        <ul class="footer-links">
+          <li><a href="/support.html#request">Request support</a></li>
+          <li><a href="/support.html#faq">FAQ</a></li>
+          <li><a href="/services.html#aftercare">Maintenance</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Contact</h2>
+        <ul class="footer-links">
+          <li><a href="mailto:[info@yourdomain.com]">[info@yourdomain.com]</a></li>
+          <li><a href="tel:[+31000000000]">[+31 (0)00 000 0000]</a></li>
+          <li class="muted">[Street 1, 1234 AB City]</li>
+        </ul>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>© <span data-year>2026</span> [Company] · KvK [00000000] · VAT [NL000000000B01]</p>
+      <p><a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a></p>
+    </div>
+  </footer>
+</body>
+</html>

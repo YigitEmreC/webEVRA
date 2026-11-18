@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <!-- Placeholder poster for the home page video. Replace with a still from your own video. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#11463a"/>
+      <stop offset="1" stop-color="#0a1c17"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <g fill="none" stroke="#3a9b7b" stroke-width="3" stroke-linejoin="round" opacity=".45">
+    <path d="M400 380 640 190l240 190v230H400z"/>
+    <path d="M590 610V480h100v130"/>
+    <circle cx="520" cy="400" r="14"/><circle cx="760" cy="400" r="14"/>
+    <path d="M520 400c40-60 200-60 240 0" stroke-dasharray="6 10"/>
+  </g>
+  <circle cx="640" cy="360" r="64" fill="#ffffff" fill-opacity=".14" stroke="#ffffff" stroke-opacity=".55" stroke-width="2"/>
+  <path d="M622 328v64l54-32z" fill="#ffffff"/>
+</svg>
