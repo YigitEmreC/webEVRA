@@ -1,10 +1,12 @@
 // "Siparişim" page (/cart.html): the chosen package, the extra products (with
-// quantities) and the request form. There is no online payment: the form is
-// e-mailed to the sales inbox by /api/order, and we call the customer to agree
-// the extras' price and plan the installation.
+// quantities) and the request form. The customer pays a 20% deposit (kapora) by
+// bank transfer first and confirms it in the form; the form is e-mailed to the
+// sales inbox by /api/order, and we call the customer to agree the extras' price
+// and plan the installation.
 
 import { getOrder, setExtraQty, removeExtra, clearOrder, extrasCount, onOrderChange, MAX_QTY } from "./cart-store.js";
-import { findItem, formatMoney, toCents } from "./pricing.js";
+import { findItem, formatMoney, toCents, depositCents } from "./pricing.js";
+import { settings } from "../../data/settings.js";
 import { escapeHtml, icon, mediaHtml } from "./ui.js";
 import { switcherHtml, removeButtonHtml, bindSwitcher } from "./package-switcher.js";
 
@@ -17,6 +19,7 @@ export function initCartPage() {
   const form = document.getElementById("order-form");
   const pkgInput = form.querySelector("[data-order-package]");
   const extrasInput = form.querySelector("[data-order-extras]");
+  const depositBox = form.querySelector("[data-deposit]");
 
   function render() {
     const focusKey = document.activeElement?.dataset?.focusKey;
@@ -60,11 +63,43 @@ export function initCartPage() {
         <span>Toplam</span>
         <span class="price">${formatMoney(toCents(pkg.price))}${count ? `<span class="order-total-extra">+ ek ürün fiyatları</span>` : ""}</span>
       </div>
+      <div class="order-deposit">
+        <span>Şimdi ödenecek kapora (%${Math.round(settings.payment.depositRate * 100)})</span>
+        <strong>${formatMoney(depositCents(pkg))}</strong>
+      </div>
 
-      <p class="fine-print">${icon("check")}<span>Paket fiyatı KDV dahildir. ${count ? "Ek ürünlerin fiyatı" : "Ekstra ürün eklerseniz fiyatı"} sizinle iletişime geçtiğimizde birlikte belirlenir; ödeme ve kurulum tarihi bu görüşmede netleşir.</span></p>`;
+      <p class="fine-print">${icon("check")}<span>Paket fiyatı KDV dahildir. ${count ? "Ek ürünlerin fiyatı" : "Ekstra ürün eklerseniz fiyatı"} sizinle iletişime geçtiğimizde birlikte belirlenir; kalan tutar ve kurulum tarihi bu görüşmede netleşir.</span></p>`;
+
+    renderDeposit(pkg);
 
     if (focusKey) summary.querySelector(`[data-focus-key="${focusKey}"]`)?.focus();
   }
+
+  /** Amount, bank details and what to write in the transfer description. */
+  function renderDeposit(pkg) {
+    const { bankName, accountName, iban } = settings.payment;
+    depositBox.innerHTML = `
+      <p class="deposit-amount"><span>Gönderilecek tutar</span><strong>${formatMoney(depositCents(pkg))}</strong></p>
+      <dl class="deposit-bank">
+        <div><dt>Banka</dt><dd>${escapeHtml(bankName)}</dd></div>
+        <div><dt>Hesap sahibi</dt><dd>${escapeHtml(accountName)}</dd></div>
+        <div><dt>IBAN</dt><dd><span class="iban" data-iban>${escapeHtml(iban)}</span> <button type="button" class="link-button" data-copy-iban>Kopyala</button></dd></div>
+        <div><dt>Açıklama</dt><dd>Adınız soyadınız ve "${escapeHtml(pkg.name)}"</dd></div>
+      </dl>`;
+  }
+
+  depositBox.addEventListener("click", async (e) => {
+    const button = e.target.closest("[data-copy-iban]");
+    if (!button) return;
+    const iban = settings.payment.iban.replace(/\s+/g, "");
+    try {
+      await navigator.clipboard.writeText(iban);
+      button.textContent = "Kopyalandı";
+    } catch {
+      button.textContent = "Kopyalanamadı";
+    }
+    setTimeout(() => (button.textContent = "Kopyala"), 2000);
+  });
 
   function extraHtml({ item, qty }) {
     const id = escapeHtml(item.id);

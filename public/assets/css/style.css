@@ -801,3 +801,39 @@ body.has-order-bar .toast:not(.is-visible) { transform: translate(-50%, calc(100
 @media (min-width: 720px) {
   .product-panel::before { background: linear-gradient(90deg, color-mix(in srgb, var(--surface) 25%, transparent) 0%, color-mix(in srgb, var(--surface) 70%, transparent) 34%, color-mix(in srgb, var(--surface) 80%, transparent) 100%); }
 }
+
+/* ---------- Deposit (kapora) by bank transfer on /cart.html ---------- */
+.deposit { display: grid; gap: 0.9rem; margin: 0.5rem 0 0; padding: 1rem 1.1rem 1.1rem; border: 1.5px solid var(--accent); border-radius: var(--radius-sm); background: var(--accent-soft); }
+.deposit legend { padding: 0 0.4rem; font-weight: 700; color: var(--accent); }
+.deposit-box { display: grid; gap: 0.6rem; }
+.deposit-amount { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin: 0; }
+.deposit-amount strong { font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.deposit-bank { display: grid; gap: 0.35rem; margin: 0; font-size: 0.92rem; }
+.deposit-bank div { display: grid; grid-template-columns: 6.5rem 1fr; gap: 0.5rem; }
+.deposit-bank dt { color: var(--muted); }
+.deposit-bank dd { margin: 0; overflow-wrap: anywhere; }
+.iban { font-family: var(--mono); font-weight: 600; letter-spacing: 0.02em; }
+.deposit .field input { background: var(--surface); }
+
+.order-deposit { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding: 0.7rem 0.85rem; border-radius: var(--radius-sm); background: var(--accent-soft); color: var(--accent); font-size: 0.92rem; }
+.order-deposit strong { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+
+/* Support form: order number required */
+.notice-inline { margin: 0 0 0.5rem; padding: 0.75rem 0.9rem; border-left: 3px solid var(--accent); border-radius: 6px; background: var(--accent-soft); font-size: 0.9rem; }
+.field-hint { margin: 0.3rem 0 0; font-size: 0.8rem; color: var(--muted); }
+.input-code { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.03em; }
+.input-code::placeholder { text-transform: none; }
+
+/* Package cards: products inside */
+.pkg-contents { margin-top: 1.25rem; border-top: 1px solid var(--border); padding-top: 0.9rem; }
+.pkg-contents summary { cursor: pointer; font-weight: 700; list-style-position: inside; }
+.pkg-contents summary:hover { color: var(--accent); }
+.pkg-items { list-style: none; margin: 0.75rem 0; padding: 0; display: grid; gap: 0.45rem; }
+.pkg-items li { display: grid; grid-template-columns: 2.5rem 1fr auto; align-items: center; gap: 0.6rem; }
+.pkg-items a { color: var(--text); font-size: 0.9rem; text-decoration: none; }
+.pkg-items a:hover { color: var(--accent); text-decoration: underline; }
+.pkg-qty { font-weight: 700; font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* Products page: "products inside <package>" filter label */
+.pkg-filter { display: inline-flex; align-items: center; gap: 0.35rem; margin-right: 0.5rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+.pkg-filter .icon { width: 1rem; height: 1rem; }

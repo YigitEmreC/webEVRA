@@ -4,10 +4,10 @@
 // Products page, where extra products can be added before sending the request.
 
 import { packages } from "../../data/catalog.js";
-import { formatMoney, packageValueCents, toCents } from "./pricing.js";
+import { findItem, formatMoney, packageValueCents, toCents } from "./pricing.js";
 import { getOrder, setPackage, onOrderChange } from "./cart-store.js";
 import { removeButtonHtml, bindSwitcher } from "./package-switcher.js";
-import { escapeHtml, icon } from "./ui.js";
+import { escapeHtml, icon, mediaHtml } from "./ui.js";
 
 const COMPACT_ITEMS = 4;
 
@@ -22,9 +22,12 @@ export function initPackages() {
 }
 
 function render(root, list, compact) {
+  // The package named in the address (#package-yasli) opens its product list.
+  let openIds = new Set(location.hash.startsWith("#package-") ? [location.hash.slice(9)] : []);
   const draw = () => {
+    if (root.querySelector(".package-card")) openIds = new Set([...root.querySelectorAll("details[data-contents][open]")].map((d) => d.dataset.contents));
     const selected = getOrder().package;
-    root.innerHTML = list.map((p) => card(p, compact, p.id === selected, Boolean(selected))).join("");
+    root.innerHTML = list.map((p) => card(p, compact, p.id === selected, Boolean(selected), openIds.has(p.id))).join("");
   };
   draw();
   onOrderChange(draw);
@@ -38,7 +41,7 @@ function render(root, list, compact) {
   });
 }
 
-function card(p, compact, selected, hasPackage) {
+function card(p, compact, selected, hasPackage, open) {
   const id = escapeHtml(p.id);
   const price = toCents(p.price);
   const value = packageValueCents(p);
@@ -61,6 +64,7 @@ function card(p, compact, selected, hasPackage) {
         ${compact ? "" : `<p class="card-text">${escapeHtml(p.description)}</p>`}
         ${highlights ? `<h4 class="list-title">Özellikler</h4><ul class="check-list">${highlights}</ul>` : ""}
         ${more > 0 ? `<p class="muted">+ ${more} özellik daha</p>` : ""}
+        ${compact ? "" : contentsHtml(p, open)}
       </div>
       <div class="card-footer card-footer-stack">
         ${
@@ -72,4 +76,27 @@ function card(p, compact, selected, hasPackage) {
         ${selected ? removeButtonHtml() : ""}
       </div>
     </article>`;
+}
+
+/** The products inside a package, with quantities and links to the Products page. */
+function contentsHtml(p, open) {
+  const items = (p.items || []).map(({ id, qty }) => ({ item: findItem(id), qty })).filter(({ item }) => item);
+  const total = items.reduce((sum, { qty }) => sum + qty, 0);
+  return `
+    <details class="pkg-contents" data-contents="${escapeHtml(p.id)}" ${open ? "open" : ""}>
+      <summary>Paketteki ürünler <span class="muted">(${total} adet)</span></summary>
+      <ul class="pkg-items">
+        ${items
+          .map(
+            ({ item, qty }) => `
+          <li>
+            <span class="extra-media">${mediaHtml(item)}</span>
+            <a href="/products.html?paket=${escapeHtml(p.id)}#product-${escapeHtml(item.id)}">${escapeHtml(item.name)}</a>
+            <span class="pkg-qty">${qty}×</span>
+          </li>`
+          )
+          .join("")}
+      </ul>
+      <a class="text-link" href="/products.html?paket=${escapeHtml(p.id)}">Bu paketin ürünlerini incele →</a>
+    </details>`;
 }

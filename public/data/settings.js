@@ -5,7 +5,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const settings = {
-  // Shown in e-mails sent by the website and in the checkout.
+  // Shown in e-mails sent by the website.
   companyName: "Evra",
 
   // Where the website's e-mails go. Change an address here and every form follows.
@@ -26,16 +26,13 @@ export const settings = {
   currency: "TRY",
   locale: "tr-TR",
 
-  shipping: {
-    // Countries you deliver to (two-letter codes). Stripe only accepts
-    // delivery addresses in these countries.
-    countries: ["TR"],
-    // Flat delivery fee in euros. Set to 0 for free delivery.
-    fee: 0,
-    // Orders at or above this amount ship free. Set to null to switch off.
-    freeFrom: null,
-    // Name of the delivery option shown at checkout.
-    label: "Standard delivery",
+  // Deposit (kapora) for package requests, paid by bank transfer (havale/EFT)
+  // before the request form can be sent. Shown on the Siparişim page.
+  payment: {
+    depositRate: 0.2, // 20% of the package price
+    bankName: "[Banka adı]",
+    accountName: "[Hesap sahibi / şirket ünvanı]",
+    iban: "[TR00 0000 0000 0000 0000 0000 00]",
   },
 
   // Optional spam protection for the contact and support forms.

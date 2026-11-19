@@ -73,7 +73,7 @@
           <!-- Request form: e-mailed to the sales inbox (settings.js → email.sales) by /api/order -->
           <form class="card card-pad form" id="order-form" data-endpoint="/api/order" data-redirect="/order-success.html">
             <h2>İletişim bilgileriniz</h2>
-            <p class="muted">Online ödeme alınmaz. Talebinizi aldıktan sonra sizi arayıp evinizi, paketi ve ekstra ürünleri konuşuyor, kurulum randevunuzu birlikte belirliyoruz.</p>
+            <p class="muted">Talebinizi göndermeden önce paket fiyatının %20'si kadar kaporayı havale/EFT ile gönderin. Kapora kurulum ve danışmanlık içindir; ardından sizi arayıp evinizi, paketi ve ekstra ürünleri konuşuyor, kurulum randevunuzu birlikte belirliyoruz.</p>
             <input type="hidden" name="package" data-order-package>
             <input type="hidden" name="extras" data-order-extras>
             <div class="form-row">
@@ -111,6 +111,19 @@
               <label for="o-note">Notunuz <span class="optional">(isteğe bağlı)</span></label>
               <textarea id="o-note" name="message" maxlength="3000" placeholder="Evinizin büyüklüğü, oda sayısı, kombi tipi…"></textarea>
             </div>
+            <!-- Deposit (kapora) by bank transfer; amount and bank details come from settings.js → payment -->
+            <fieldset class="deposit">
+              <legend>Kapora (%20) · Havale / EFT</legend>
+              <div class="deposit-box" data-deposit></div>
+              <div class="field">
+                <label for="o-sender">Havaleyi gönderen kişinin adı soyadı</label>
+                <input id="o-sender" name="depositSender" required maxlength="120" autocomplete="name">
+              </div>
+              <label class="checkbox">
+                <input type="checkbox" name="depositPaid" value="yes" required>
+                <span>Kapora tutarını yukarıdaki hesaba havale/EFT ile gönderdim.</span>
+              </label>
+            </fieldset>
             <label class="checkbox">
               <input type="checkbox" name="consent" value="yes" required>
               <span><a href="/terms.html">Kullanım koşullarını</a> okudum; bilgilerimin bu talebin işlenmesi için <a href="/privacy.html">gizlilik politikasında</a> açıklandığı şekilde Evra tarafından kullanılmasını kabul ediyorum.</span>

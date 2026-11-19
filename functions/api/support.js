@@ -1,4 +1,6 @@
 // POST /api/support — the maintenance / technical support portal.
+// Only customers with a package order can use it: the order number
+// (PT-…, signed, see lib/order-ref.js) is checked first.
 // 1. Creates a reference number like SR-261117-7KQ2.
 // 2. E-mails the request to destek@ (settings.js → email.support).
 // 3. Sends the customer a confirmation with the reference (lib/email-templates.js).
@@ -7,6 +9,7 @@ import { json, sameOrigin, readBody, text, line, isEmail, passesTurnstile } from
 import { emailConfigured, inbox, sendEmail, fieldsEmail, textToHtml } from "../../lib/email.js";
 import { supportAutoReply } from "../../lib/email-templates.js";
 import { findItem } from "../../public/assets/js/pricing.js";
+import { isValidOrderRef, normalizeOrderRef } from "../../lib/order-ref.js";
 
 export async function onRequestPost({ request, env }) {
   if (!sameOrigin(request)) return json({ error: "Forbidden." }, 403);
@@ -15,7 +18,7 @@ export async function onRequestPost({ request, env }) {
   try {
     body = await readBody(request);
   } catch {
-    return json({ error: "Invalid request." }, 400);
+    return json({ error: "Geçersiz istek." }, 400);
   }
   if (body.website) return json({ ok: true, ticket: ticketId() }); // spam trap was filled in
 
@@ -25,7 +28,7 @@ export async function onRequestPost({ request, env }) {
     name: line(body.name, 100),
     email: line(body.email, 254),
     phone: line(body.phone, 40),
-    reference: line(body.reference, 60),
+    reference: normalizeOrderRef(line(body.reference, 60)),
     address: line(body.address, 200),
     product: findItem(line(body.product, 80))?.name || "",
     date: /^\d{4}-\d{2}-\d{2}$/.test(body.date || "") ? body.date : "",
@@ -36,6 +39,9 @@ export async function onRequestPost({ request, env }) {
   }
   if (!(await passesTurnstile(env, body["cf-turnstile-response"], request.headers.get("CF-Connecting-IP")))) {
     return json({ error: "Spam kontrolü başarısız oldu. Lütfen sayfayı yenileyip tekrar deneyin." }, 400);
+  }
+  if (!(await isValidOrderRef(env, form.reference))) {
+    return json({ error: "Geçerli bir sipariş numarası girin (örn. PT-261119-7KQ2-H8M4Q). Numaranız paket talebinizden sonra gelen onay e-postasında yazar." }, 400);
   }
   const to = inbox(env, "support");
   if (!emailConfigured(env) || !to) {
@@ -55,7 +61,7 @@ export async function onRequestPost({ request, env }) {
         ["Ad soyad", form.name],
         ["E-posta", form.email],
         ["Telefon", form.phone],
-        ["Sipariş / müşteri no", form.reference],
+        ["Sipariş no (doğrulandı)", form.reference],
         ["Adres", form.address],
         ["Ürün / paket", form.product],
         ["Tercih edilen ziyaret tarihi", form.date],

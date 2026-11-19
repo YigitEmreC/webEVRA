@@ -5,6 +5,7 @@
 //    bottom leads to the request form (/cart.html). Extras have no price on the
 //    site; it is agreed with the customer when we call them.
 // The chosen category and search text are kept in the URL (?kategori=…&ara=…).
+// ?paket=genel-ev shows only the products inside that package (linked from the Packages page).
 
 import { products } from "../../data/catalog.js";
 import { findItem, formatMoney, toCents } from "./pricing.js";
@@ -41,6 +42,9 @@ export function initProducts() {
   const params = new URLSearchParams(location.search);
   let active = categories.includes(params.get("kategori")) ? params.get("kategori") : ALL;
   search.value = params.get("ara") || "";
+  const pkgParam = findItem(params.get("paket") || "");
+  let pkgFilter = pkgParam && pkgParam.kind === "package" ? pkgParam : null;
+  const inPackage = (p) => !pkgFilter || pkgFilter.items.some((i) => i.id === p.id);
 
   filters.innerHTML = [ALL, ...categories]
     .map(
@@ -70,7 +74,7 @@ export function initProducts() {
     // Chip counts follow the search, so you can see where the matches are.
     const perCategory = new Map([[ALL, 0]]);
     for (const p of products) {
-      if (!matchesSearch(p, words)) continue;
+      if (!matchesSearch(p, words) || !inPackage(p)) continue;
       perCategory.set(ALL, perCategory.get(ALL) + 1);
       perCategory.set(p.category, (perCategory.get(p.category) || 0) + 1);
     }
@@ -83,20 +87,24 @@ export function initProducts() {
     let shown = 0;
     for (const el of list.children) {
       const p = byId.get(el.dataset.id);
-      const visible = (active === ALL || p.category === active) && matchesSearch(p, words);
+      const visible = (active === ALL || p.category === active) && matchesSearch(p, words) && inPackage(p);
       el.hidden = !visible;
       if (visible) shown++;
     }
 
-    const filtered = active !== ALL || words.length > 0;
+    const filtered = active !== ALL || words.length > 0 || pkgFilter;
+    const pkgNote = pkgFilter
+      ? `<span class="pkg-filter">${icon("layers")}<strong>${escapeHtml(pkgFilter.name)}</strong> içindeki ürünler</span> `
+      : "";
     count.innerHTML = filtered
-      ? `${shown} / ${products.length} ürün gösteriliyor <button type="button" class="link-button" data-clear>Filtreleri temizle</button>`
+      ? `${pkgNote}${shown} / ${products.length} ürün gösteriliyor <button type="button" class="link-button" data-clear>Filtreleri temizle</button>`
       : `${products.length} ürün`;
     empty.hidden = shown > 0;
 
     const next = new URLSearchParams();
     if (active !== ALL) next.set("kategori", active);
     if (search.value.trim()) next.set("ara", search.value.trim());
+    if (pkgFilter) next.set("paket", pkgFilter.id);
     const query = next.toString();
     history.replaceState(null, "", `${location.pathname}${query ? `?${query}` : ""}${location.hash}`);
   }
@@ -113,6 +121,7 @@ export function initProducts() {
 
   function clearAll() {
     search.value = "";
+    pkgFilter = null;
     setCategory(ALL);
     search.focus();
   }
@@ -213,7 +222,19 @@ export function initProducts() {
   });
 
   bindSwitcher(banner);
-  onOrderChange(syncOrder);
+  // A package filter (?paket=…) follows the chosen package: switching to another
+  // package shows that package's products; removing the package clears it.
+  let lastPackage = getOrder().package;
+  onOrderChange(() => {
+    syncOrder();
+    const current = getOrder().package;
+    if (current === lastPackage) return;
+    lastPackage = current;
+    if (!pkgFilter) return;
+    const next = current ? findItem(current) : null;
+    pkgFilter = next && next.kind === "package" ? next : null;
+    apply();
+  });
   syncOrder();
   apply();
 

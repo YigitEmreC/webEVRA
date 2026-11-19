@@ -1,6 +1,9 @@
 // POST /api/order — a package request from the "Siparişim" page (/cart.html).
-// There is no online payment. This:
-// 1. Creates a reference number like PT-261119-7KQ2.
+// The customer first pays a 20% deposit (kapora) by bank transfer and confirms it
+// in the form (who sent it). It can't be checked automatically: the sales team
+// checks the bank account. This:
+// 1. Creates a signed order number like PT-261119-7KQ2-H8M4Q (lib/order-ref.js).
+//    The support form only accepts these numbers.
 // 2. E-mails the request (package, extra products, contact details) to the sales
 //    inbox: satis@ (settings.js → email.sales). Pressing Reply goes to the customer.
 // 3. Sends the customer a confirmation (wording: lib/email-templates.js).
@@ -9,7 +12,8 @@
 import { json, sameOrigin, readBody, text, line, isEmail, passesTurnstile } from "../../lib/http.js";
 import { emailConfigured, inbox, sendEmail, fieldsEmail, textToHtml } from "../../lib/email.js";
 import { orderAutoReply } from "../../lib/email-templates.js";
-import { findItem, formatMoney, toCents } from "../../public/assets/js/pricing.js";
+import { findItem, formatMoney, toCents, depositCents } from "../../public/assets/js/pricing.js";
+import { newOrderRef } from "../../lib/order-ref.js";
 
 const MAX_EXTRAS = 50;
 const MAX_QTY = 20;
@@ -23,7 +27,7 @@ export async function onRequestPost({ request, env }) {
   } catch {
     return json({ error: "Geçersiz istek." }, 400);
   }
-  if (body.website) return json({ ok: true, ticket: ticketId() }); // spam trap was filled in
+  if (body.website) return json({ ok: true }); // spam trap was filled in (no real order number for bots)
 
   const pkg = findItem(line(body.package, 80));
   if (!pkg || pkg.kind !== "package") {
@@ -48,9 +52,13 @@ export async function onRequestPost({ request, env }) {
     callTime: line(body.callTime, 80),
     wishes: text(body.wishes, 2000),
     message: text(body.message, 3000),
+    depositSender: line(body.depositSender, 120),
   };
   if (!form.name || !isEmail(form.email) || !form.phone || !form.address || !body.consent) {
     return json({ error: "Lütfen adınızı, telefonunuzu, geçerli bir e-posta adresini ve kurulum adresini girin, onay kutusunu işaretleyin." }, 400);
+  }
+  if (!body.depositPaid || !form.depositSender) {
+    return json({ error: "Talebi göndermeden önce %20 kaporayı havale/EFT ile gönderin, gönderen kişinin adını yazın ve kapora kutusunu işaretleyin." }, 400);
   }
   if (!(await passesTurnstile(env, body["cf-turnstile-response"], request.headers.get("CF-Connecting-IP")))) {
     return json({ error: "Spam kontrolü başarısız oldu. Lütfen sayfayı yenileyip tekrar deneyin." }, 400);
@@ -60,7 +68,8 @@ export async function onRequestPost({ request, env }) {
     return json({ error: "Sipariş sistemi henüz bağlı değil. Lütfen bizi arayın veya e-posta gönderin." }, 503);
   }
 
-  const ticket = ticketId();
+  const ticket = await newOrderRef(env);
+  const depositLine = formatMoney(depositCents(pkg));
   const packageLine = `${pkg.name} – ${formatMoney(toCents(pkg.price))}`;
   const extrasText = extras.length ? extras.map(({ item, qty }) => `• ${qty} × ${item.name}`).join("\n") : "Yok";
   const totalLine = `${formatMoney(toCents(pkg.price))}${extras.length ? " + ek ürün fiyatları" : ""}`;
@@ -75,6 +84,7 @@ export async function onRequestPost({ request, env }) {
         ["Paket", packageLine],
         ["Ekstra ürünler (fiyat görüşülecek)", extrasText],
         ["Toplam", totalLine],
+        ["Kapora (%20, havale/EFT) — hesaptan kontrol edin", `${depositLine} · Gönderen: ${form.depositSender}`],
         ["İstedikleri (listede olmayan)", form.wishes],
         ["Ad soyad", form.name],
         ["Telefon", form.phone],
@@ -90,7 +100,7 @@ export async function onRequestPost({ request, env }) {
   }
 
   try {
-    const reply = orderAutoReply({ ...form, ticket, packageLine, extrasText, totalLine });
+    const reply = orderAutoReply({ ...form, ticket, packageLine, extrasText, totalLine, depositLine });
     await sendEmail(env, { to: form.email, replyTo: to, subject: reply.subject, text: reply.text, html: textToHtml(reply.text) });
   } catch (err) {
     console.error("order: auto-reply failed", err); // the request itself did arrive, so still report success
@@ -99,11 +109,3 @@ export async function onRequestPost({ request, env }) {
   return json({ ok: true, ticket });
 }
 
-/** e.g. PT-261119-7KQ2: date + 4 random characters (no look-alikes like 0/O, 1/I). */
-function ticketId() {
-  const d = new Date();
-  const date = `${String(d.getUTCFullYear()).slice(2)}${String(d.getUTCMonth() + 1).padStart(2, "0")}${String(d.getUTCDate()).padStart(2, "0")}`;
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const bytes = crypto.getRandomValues(new Uint8Array(4));
-  return `PT-${date}-${[...bytes].map((b) => chars[b % chars.length]).join("")}`;
-}

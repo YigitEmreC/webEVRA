@@ -83,6 +83,7 @@
         <div>
           <form class="card card-pad form" id="support-form" data-endpoint="/api/support">
             <h2>Talebiniz</h2>
+            <p class="notice-inline">Destek talebi yalnızca paket siparişi olan müşterilerimiz içindir ve sipariş numarası gerektirir. Henüz siparişiniz yoksa <a href="/packages.html">paketlere göz atın</a> veya sorunuz için <a href="/contact.html">iletişim formunu</a> kullanın.</p>
             <div class="form-row">
               <div class="field">
                 <label for="s-type">Neye ihtiyacınız var?</label>
@@ -119,8 +120,13 @@
                 <input id="s-phone" name="phone" type="tel" autocomplete="tel" maxlength="40">
               </div>
               <div class="field">
-                <label for="s-reference">Sipariş veya müşteri numarası <span class="optional">(isteğe bağlı)</span></label>
-                <input id="s-reference" name="reference" maxlength="60">
+                <label for="s-reference">Sipariş numarası</label>
+                <input id="s-reference" name="reference" required maxlength="60" autocomplete="off" autocapitalize="characters" spellcheck="false"
+                       class="input-code" placeholder="PT-261119-7KQ2-H8M4Q"
+                       pattern="\s*[Pp][Tt]-\d{6}-[A-Za-z0-9]{4}-[A-Za-z0-9]{5}\s*"
+                       title="Sipariş numaranız PT-261119-7KQ2-H8M4Q biçimindedir."
+                       aria-describedby="s-reference-hint">
+                <p class="field-hint" id="s-reference-hint">Paket talebinizden sonra gelen onay e-postasında yazar.</p>
               </div>
             </div>
             <div class="field">
@@ -234,7 +240,7 @@
           <h3>Sipariş ve ödeme</h3>
           <details class="faq-item">
             <summary>Nasıl ödeyebilirim?</summary>
-            <div class="faq-answer"><p>[Kabul ettiğiniz ödeme yöntemlerini yazın, örn. kredi kartı, banka kartı.]</p></div>
+            <div class="faq-answer"><p>Paket talebinizi göndermeden önce paket fiyatının %20'si kadar kaporayı havale/EFT ile ödersiniz; banka bilgileri sipariş sayfasında yazar. Kalan tutar ve ekstra ürünlerin fiyatı, sizi aradığımızda yapacağımız planlama görüşmesinde netleşir.</p></div>
           </details>
           <details class="faq-item">
             <summary>Siparişim ne zaman teslim edilir?</summary>
