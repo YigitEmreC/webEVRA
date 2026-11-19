@@ -1,8 +1,7 @@
 // Entry point, loaded by every page. Each feature only switches on when its
 // element is on the page, so one script tag works everywhere.
 
-import { getCart, onCartChange, clearCart } from "./cart-store.js";
-import { priceCart } from "./pricing.js";
+import { orderCount, onOrderChange } from "./cart-store.js";
 import { ensureToast } from "./ui.js";
 import { initProducts } from "./products.js";
 import { initPackages } from "./packages.js";
@@ -78,21 +77,27 @@ function initActiveLink() {
 function initCartBadge() {
   const badges = document.querySelectorAll("[data-cart-count]");
   const update = () => {
-    const { count } = priceCart(getCart());
+    const count = orderCount();
     badges.forEach((badge) => {
       badge.textContent = count > 99 ? "99+" : String(count);
       badge.hidden = count === 0;
-      badge.closest("a")?.setAttribute("aria-label", count ? `Cart, ${count} item${count === 1 ? "" : "s"}` : "Cart");
+      badge.closest("a")?.setAttribute("aria-label", count ? `Siparişim, ${count} öğe` : "Siparişim");
     });
   };
   update();
-  onCartChange(update);
+  onOrderChange(update);
 }
 
 function initYear() {
   document.querySelectorAll("[data-year]").forEach((el) => (el.textContent = new Date().getFullYear()));
 }
 
+// Thank-you page after a package request: shows the reference number (?ref=PT-…).
 function initOrderSuccess() {
-  if (document.getElementById("order-success") && new URLSearchParams(location.search).has("session_id")) clearCart();
+  if (!document.getElementById("order-success")) return;
+  const ref = new URLSearchParams(location.search).get("ref");
+  document.querySelectorAll("[data-ref]").forEach((el) => {
+    if (ref && /^[A-Z0-9-]{4,30}$/.test(ref)) el.textContent = ref;
+    else el.closest("[data-ref-row]")?.setAttribute("hidden", "");
+  });
 }

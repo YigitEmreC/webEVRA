@@ -40,5 +40,5 @@ export const settings = {
 
   // Optional spam protection for the contact and support forms.
   // Paste your Cloudflare Turnstile *site key* here (see README → Spam protection).
-  turnstileSiteKey: "",
+  turnstileSiteKey: "0x4AAAAAAGJE1nJAyKWWO1ZE",
 };

@@ -1,137 +1,74 @@
-// Cart page: line items, quantities, totals and the hand-off to Stripe Checkout.
-// Card details are never typed into this site: the customer pays on Stripe's
-// secure payment page and is sent back to /order-success.html afterwards.
+// "Siparişim" page (/cart.html): the chosen package, the extra products and the
+// request form. There is no online payment: the form is e-mailed to the sales
+// inbox by /api/order, and we call the customer to plan the installation.
 
-import { getCart, setQty, removeFromCart, onCartChange } from "./cart-store.js";
-import { priceCart, formatMoney, toCents } from "./pricing.js";
-import { settings } from "../../data/settings.js";
+import { getOrder, removeExtra, clearOrder, onOrderChange } from "./cart-store.js";
+import { findItem, formatMoney, toCents } from "./pricing.js";
 import { escapeHtml, icon, mediaHtml } from "./ui.js";
 
 export function initCartPage() {
-  const root = document.getElementById("cart");
-  if (!root) return;
+  const layout = document.getElementById("order-layout");
+  if (!layout) return;
 
-  let termsAccepted = false;
+  const empty = document.getElementById("order-empty");
+  const summary = document.getElementById("order-summary");
+  const form = document.getElementById("order-form");
+  const pkgInput = form.querySelector("[data-order-package]");
+  const extrasInput = form.querySelector("[data-order-extras]");
 
   function render() {
-    const focusKey = document.activeElement?.dataset?.focusKey;
-    const cart = priceCart(getCart());
+    const order = getOrder();
+    const pkg = order.package ? findItem(order.package) : null;
+    const valid = pkg && pkg.kind === "package";
+    empty.hidden = Boolean(valid);
+    layout.hidden = !valid;
+    if (!valid) return;
 
-    if (!cart.lines.length) {
-      root.innerHTML = `
-        <div class="card empty-state">
-          <span class="feature-icon">${icon("cart")}</span>
-          <h2>Your cart is empty</h2>
-          <p class="muted">Browse our products or pick a complete package.</p>
-          <div class="actions actions-center">
-            <a class="btn btn-primary" href="/packages.html">View packages</a>
-            <a class="btn btn-secondary" href="/products.html">Browse products</a>
-          </div>
-        </div>`;
-      return;
-    }
+    const extras = order.extras.map((id) => findItem(id)).filter((item) => item && item.kind === "product");
+    pkgInput.value = pkg.id;
+    extrasInput.value = extras.map((item) => item.id).join(",");
 
-    const { fee, freeFrom } = settings.shipping;
-    const toFree = freeFrom != null && fee ? toCents(freeFrom) - cart.subtotalCents : 0;
+    summary.innerHTML = `
+      <h2>Sipariş özeti</h2>
+      <div class="order-package">
+        <p class="cart-line-kind">Seçilen paket</p>
+        <div class="order-package-row">
+          <h3>${escapeHtml(pkg.name)}</h3>
+          <span class="price">${formatMoney(toCents(pkg.price))}</span>
+        </div>
+        <a class="text-link" href="/packages.html">Paketi değiştir</a>
+      </div>
 
-    root.innerHTML = `
-      <div class="cart-layout">
-        <section class="card cart-lines" aria-label="Items in your cart">
-          ${cart.lines.map(lineHtml).join("")}
-        </section>
-        <aside class="card summary" aria-labelledby="summary-title">
-          <h2 id="summary-title">Order summary</h2>
-          <dl class="summary-rows">
-            <div><dt>Subtotal</dt><dd>${formatMoney(cart.subtotalCents)}</dd></div>
-            <div><dt>${escapeHtml(settings.shipping.label)}</dt><dd>${cart.shippingCents ? formatMoney(cart.shippingCents) : "Free"}</dd></div>
-            <div class="summary-total"><dt>Total</dt><dd>${formatMoney(cart.totalCents)}</dd></div>
-          </dl>
-          ${toFree > 0 ? `<p class="hint">Add ${formatMoney(toFree)} more for free delivery.</p>` : ""}
-          <label class="checkbox">
-            <input type="checkbox" id="accept-terms" ${termsAccepted ? "checked" : ""}>
-            <span>I agree to the <a href="/terms.html">terms and conditions</a></span>
-          </label>
-          <button type="button" class="btn btn-primary btn-block" id="checkout-btn">Go to secure checkout</button>
-          <p class="status is-error" id="checkout-status" role="alert" hidden></p>
-          <p class="fine-print">${icon("check")}<span>You enter your payment details on Stripe's secure payment page. Prices include VAT.</span></p>
-        </aside>
-      </div>`;
+      <div class="order-extras">
+        <p class="cart-line-kind">Ekstra ürünler (${extras.length})</p>
+        ${
+          extras.length
+            ? `<ul class="extra-list">${extras
+                .map(
+                  (item) => `
+                <li>
+                  <span class="extra-media">${mediaHtml(item)}</span>
+                  <a href="/products.html#product-${escapeHtml(item.id)}">${escapeHtml(item.name)}</a>
+                  <button type="button" class="link-btn" data-remove="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)} çıkar">Çıkar</button>
+                </li>`
+                )
+                .join("")}</ul>`
+            : `<p class="muted">Ekstra ürün seçmediniz.</p>`
+        }
+        <a class="text-link" href="/products.html">${extras.length ? "Başka ürün ekle" : "Ekstra ürün ekle"}</a>
+      </div>
 
-    if (focusKey) root.querySelector(`[data-focus-key="${focusKey}"]`)?.focus();
+      <p class="fine-print">${icon("check")}<span>Paket fiyatı KDV dahildir. Ekstra ürünlerin fiyatı sizinle iletişime geçtiğimizde birlikte belirlenir; ödeme ve kurulum tarihi bu görüşmede netleşir.</span></p>`;
   }
 
-  function lineHtml({ item, quantity, unitCents, totalCents }) {
-    const id = escapeHtml(item.id);
-    const name = escapeHtml(item.name);
-    const href = item.kind === "package" ? `/packages.html#package-${id}` : `/products.html#product-${id}`;
-    return `
-      <div class="cart-line">
-        <div class="cart-line-media">${mediaHtml(item)}</div>
-        <div class="cart-line-info">
-          <p class="cart-line-kind">${item.kind === "package" ? "Package" : escapeHtml(item.category)}</p>
-          <h3><a href="${href}">${name}</a></h3>
-          <p class="muted">${formatMoney(unitCents)} each</p>
-        </div>
-        <div class="stepper" role="group" aria-label="Quantity of ${name}">
-          <button type="button" data-action="dec" data-id="${id}" data-focus-key="dec-${id}" aria-label="One less">−</button>
-          <output>${quantity}</output>
-          <button type="button" data-action="inc" data-id="${id}" data-focus-key="inc-${id}" aria-label="One more">+</button>
-        </div>
-        <p class="cart-line-total">${formatMoney(totalCents)}</p>
-        <button type="button" class="link-btn" data-action="remove" data-id="${id}">Remove</button>
-      </div>`;
-  }
-
-  root.addEventListener("click", (e) => {
-    const button = e.target.closest("[data-action]");
-    if (button) {
-      const { action, id } = button.dataset;
-      const current = getCart().find((i) => i.id === id)?.qty || 0;
-      if (action === "inc") setQty(id, current + 1);
-      if (action === "dec") setQty(id, current - 1);
-      if (action === "remove") removeFromCart(id);
-      return;
-    }
-    if (e.target.closest("#checkout-btn")) checkout();
+  summary.addEventListener("click", (e) => {
+    const button = e.target.closest("[data-remove]");
+    if (button) removeExtra(button.dataset.remove);
   });
 
-  root.addEventListener("change", (e) => {
-    if (e.target.id === "accept-terms") termsAccepted = e.target.checked;
-  });
-
-  async function checkout() {
-    const button = root.querySelector("#checkout-btn");
-    const status = root.querySelector("#checkout-status");
-    const showError = (message) => {
-      status.textContent = message;
-      status.hidden = false;
-    };
-
-    if (!termsAccepted) {
-      showError("Please accept the terms and conditions first.");
-      root.querySelector("#accept-terms").focus();
-      return;
-    }
-
-    status.hidden = true;
-    button.disabled = true;
-    button.textContent = "Opening secure checkout…";
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: getCart() }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.url) throw new Error(data.error || "Checkout isn't available right now. Please try again later or contact us.");
-      window.location.assign(data.url);
-    } catch (err) {
-      showError(err.message);
-      button.disabled = false;
-      button.textContent = "Go to secure checkout";
-    }
-  }
+  // forms.js sends the form; once it succeeded, the request is done.
+  form.addEventListener("form:success", clearOrder);
 
   render();
-  onCartChange(render);
+  onOrderChange(render);
 }

@@ -5,12 +5,12 @@
 
 import * as contact from "./functions/api/contact.js";
 import * as support from "./functions/api/support.js";
-import * as checkout from "./functions/api/checkout.js";
+import * as order from "./functions/api/order.js";
 
 const routes = {
   "/api/contact": contact,
   "/api/support": support,
-  "/api/checkout": checkout,
+  "/api/order": order,
 };
 
 export default {

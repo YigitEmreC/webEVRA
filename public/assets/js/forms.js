@@ -46,6 +46,15 @@ async function submit(event, form) {
 }
 
 function showSuccess(form, data) {
+  // Lets the page react (e.g. the order page clears the request).
+  form.dispatchEvent(new CustomEvent("form:success", { detail: data }));
+  // <form data-redirect="/page.html"> opens that page, with the reference number.
+  if (form.dataset.redirect) {
+    const url = new URL(form.dataset.redirect, location.origin);
+    if (data.ticket) url.searchParams.set("ref", data.ticket);
+    location.assign(url);
+    return;
+  }
   const panel = document.querySelector(`[data-success-for="${form.id}"]`);
   if (!panel) return;
   panel.querySelectorAll("[data-ticket]").forEach((el) => (el.textContent = data.ticket || ""));
@@ -66,7 +75,7 @@ function fillProductSelects() {
 function loadTurnstile() {
   const slots = document.querySelectorAll(".turnstile-slot");
   if (!slots.length) return;
-  window.onTurnstileLoad = () => slots.forEach((slot) => window.turnstile.render(slot, { sitekey: settings.turnstileSiteKey }));
+  window.onTurnstileLoad = () => slots.forEach((slot) => window.turnstile.render(slot, { sitekey: settings.turnstileSiteKey, language: "tr" }));
   const script = document.createElement("script");
   script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad&render=explicit";
   script.async = true;

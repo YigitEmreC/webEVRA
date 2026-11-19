@@ -1,58 +1,77 @@
-// The cart lives in the visitor's own browser (localStorage) as [{ id, qty }].
-// Nothing is sent anywhere until they press "Go to secure checkout".
+// The visitor's package request lives in their own browser (localStorage):
+//   { package: "genel-ev" | null, extras: ["product-id", ...] }
+// Only packages are bought on the site. Products can only be added as extras
+// after a package is chosen; their price is agreed with the customer later.
+// Nothing is sent anywhere until the request form on /cart.html is submitted.
 
-const KEY = "cart.v1";
-const EVENT = "cart:change";
-let memory = []; // fallback when storage is blocked (private mode, etc.)
+const KEY = "order.v1";
+const EVENT = "order:change";
+const MAX_EXTRAS = 50;
+let memory = { package: null, extras: [] }; // fallback when storage is blocked (private mode, etc.)
+
+function clean(data) {
+  return {
+    package: typeof data?.package === "string" && data.package ? data.package : null,
+    extras: Array.isArray(data?.extras) ? [...new Set(data.extras.filter((id) => typeof id === "string" && id))].slice(0, MAX_EXTRAS) : [],
+  };
+}
 
 function read() {
   try {
     const raw = localStorage.getItem(KEY);
-    const data = raw ? JSON.parse(raw) : [];
-    return Array.isArray(data) ? data.filter((i) => i && typeof i.id === "string" && i.qty > 0) : [];
+    return raw ? clean(JSON.parse(raw)) : clean(memory);
   } catch {
-    return memory;
+    return clean(memory);
   }
 }
 
-function write(items) {
-  memory = items;
+function write(order) {
+  memory = clean(order);
   try {
-    localStorage.setItem(KEY, JSON.stringify(items));
+    localStorage.setItem(KEY, JSON.stringify(memory));
   } catch {
     /* storage unavailable: keep the in-memory copy */
   }
-  window.dispatchEvent(new CustomEvent(EVENT, { detail: items }));
+  window.dispatchEvent(new CustomEvent(EVENT, { detail: memory }));
 }
 
-export function getCart() {
+export function getOrder() {
   return read();
 }
 
-export function addToCart(id, qty = 1) {
-  const items = read();
-  const line = items.find((i) => i.id === id);
-  if (line) line.qty = Math.min(line.qty + qty, 99);
-  else items.push({ id, qty });
-  write(items);
+/** Choose (or replace) the package. Extras already picked are kept. */
+export function setPackage(id) {
+  write({ ...read(), package: id });
 }
 
-export function setQty(id, qty) {
-  const items = read();
-  const n = Math.floor(qty);
-  write(n > 0 ? items.map((i) => (i.id === id ? { ...i, qty: Math.min(n, 99) } : i)) : items.filter((i) => i.id !== id));
+export function hasExtra(id) {
+  return read().extras.includes(id);
 }
 
-export function removeFromCart(id) {
-  write(read().filter((i) => i.id !== id));
+/** Adds or removes an extra product. Returns true when it is now selected. */
+export function toggleExtra(id) {
+  const order = read();
+  const on = !order.extras.includes(id);
+  write({ ...order, extras: on ? [...order.extras, id] : order.extras.filter((x) => x !== id) });
+  return on;
 }
 
-export function clearCart() {
-  write([]);
+export function removeExtra(id) {
+  const order = read();
+  write({ ...order, extras: order.extras.filter((x) => x !== id) });
 }
 
-/** Calls fn whenever the cart changes, in this tab or another one. */
-export function onCartChange(fn) {
+export function clearOrder() {
+  write({ package: null, extras: [] });
+}
+
+/** Number shown on the header badge: the package plus each extra. */
+export function orderCount(order = read()) {
+  return (order.package ? 1 : 0) + order.extras.length;
+}
+
+/** Calls fn whenever the order changes, in this tab or another one. */
+export function onOrderChange(fn) {
   window.addEventListener(EVENT, () => fn(read()));
   window.addEventListener("storage", (e) => {
     if (e.key === KEY) fn(read());

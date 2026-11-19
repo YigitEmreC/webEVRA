@@ -628,3 +628,54 @@ input[type="search"]::-webkit-search-cancel-button { cursor: pointer; }
 .footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem 1.5rem; margin-top: 2.5rem; padding-block: 1.5rem; border-top: 1px solid var(--border); font-size: 0.85rem; color: var(--muted); }
 .footer-bottom p { margin: 0; }
 .footer-bottom a { color: var(--muted); }
+
+/* ---------- Package request flow (products → Siparişim) ---------- */
+
+/* Banner above the product list: "pick a package first" / chosen package */
+.mode-banner {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 1.5rem;
+  margin-bottom: 1.25rem; padding: 1.1rem 1.25rem;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
+}
+.mode-banner.is-active { border-color: var(--accent); background: var(--accent-soft); }
+.mode-banner p { margin: 0; }
+.mode-banner .muted { margin-top: 0.25rem; max-width: 46rem; font-size: 0.92rem; }
+.mode-title { display: flex; align-items: center; gap: 0.5rem; font-weight: 650; }
+.mode-title .icon { color: var(--accent); }
+.mode-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.included-tag {
+  display: inline-block; margin-left: 0.4rem; padding: 0.05rem 0.45rem; border-radius: 999px;
+  background: var(--accent-soft); color: var(--accent); letter-spacing: 0.02em;
+}
+.product-card [data-extra][aria-pressed="true"] .icon { width: 1rem; height: 1rem; }
+
+/* Bar fixed at the bottom while choosing extras */
+.order-bar {
+  position: fixed; inset: auto 0 0; z-index: 40;
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  box-shadow: 0 -6px 20px rgb(26 35 64 / 0.08);
+}
+.order-bar-inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 0.75rem; }
+.order-bar-inner p { margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.has-order-bar { padding-bottom: 4.5rem; }
+body.has-order-bar .toast { bottom: 5.25rem; }
+body.has-order-bar .toast:not(.is-visible) { transform: translate(-50%, calc(100% + 7rem)); }
+/* Phones: show the chosen package above the request form */
+@media (max-width: 899.98px) { #order-summary { order: -1; } }
+
+/* Order summary on /cart.html */
+.order-package, .order-extras { display: grid; gap: 0.4rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+.order-package p, .order-extras p { margin: 0; }
+.order-package-row { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.order-package-row h3 { margin: 0; font-size: 1.05rem; }
+.extra-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.extra-list li { display: grid; grid-template-columns: 2.5rem 1fr auto; align-items: center; gap: 0.65rem; }
+.extra-list a { color: var(--text); font-size: 0.92rem; text-decoration: none; }
+.extra-list a:hover { text-decoration: underline; }
+.extra-list .link-btn { grid-area: auto; }
+.extra-media { display: grid; place-items: center; width: 2.5rem; aspect-ratio: 1; overflow: hidden; border-radius: 8px; background: #fff; border: 1px solid var(--border); }
+.extra-media img { width: 100%; height: 100%; object-fit: contain; }
+.extra-media .icon { width: 1.1rem; height: 1.1rem; }
