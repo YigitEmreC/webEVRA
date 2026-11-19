@@ -152,7 +152,7 @@ export function initProducts() {
       footer.hidden = !choosing;
       if (!choosing) return;
       const qty = extraQty(id, order);
-      const key = `${qty ? "q" : "a"}-${id}`;
+      const key = String(qty); // redraw the card only when its quantity changed
       if (footer.dataset.state === key) return; // nothing changed on this card
       footer.dataset.state = key;
       footer.innerHTML = qty
