@@ -1,0 +1,19 @@
+// Cloudflare Workers settings. The build runs `npx wrangler deploy`, which reads this file.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Must match the Worker's name in the Cloudflare dashboard.
+  "name": "evra",
+  "main": "worker.js",
+  "compatibility_date": "2025-11-01",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    // Form and checkout requests go to worker.js; everything else is a static file.
+    "run_worker_first": ["/api/*"],
+    // Unknown pages show public/404.html.
+    "not_found_handling": "404-page"
+  },
+  // Keep variables added in the dashboard when a new version is deployed.
+  "keep_vars": true,
+  "observability": { "enabled": true }
+}
