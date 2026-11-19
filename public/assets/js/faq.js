@@ -13,7 +13,7 @@ export function initFaq() {
   const empty = root.querySelector("#faq-empty");
   let active = "all";
 
-  chips.innerHTML = [["all", "All topics"], ...groups.map((g) => [g.id, g.querySelector("h3").textContent])]
+  chips.innerHTML = [["all", "Tümü"], ...groups.map((g) => [g.id, g.querySelector("h3").textContent])]
     .map(([id, label]) => `<button type="button" class="chip" data-topic="${escapeHtml(id)}" aria-pressed="${id === active}">${escapeHtml(label)}</button>`)
     .join("");
 

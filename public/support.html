@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Help &amp; support · [Company]</title>
-  <meta name="description" content="Request maintenance or technical support, or find answers in our FAQ.">
+  <meta name="description" content="Bakım veya teknik destek talep edin ya da sıkça sorulan sorularda (SSS) cevabınızı bulun.">
   <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/css/style.css">
   <script>try{if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}</script>
@@ -51,10 +51,10 @@
       <div class="container">
         <p class="eyebrow">Yardım &amp; destek</p>
         <h1>Nasıl yardımcı olabiliriz?</h1>
-        <p class="lead">Teknik veya uzaktan yardım talep edin. FAQ'a göz atın.</p>
+        <p class="lead">Teknik veya uzaktan yardım talep edin ya da sıkça sorulan sorulara (SSS) göz atın.</p>
         <div class="actions">
           <a class="btn btn-primary" href="#request">Yardım iste</a>
-          <a class="btn btn-secondary" href="#faq">FAQ'a Göz at.</a>
+          <a class="btn btn-secondary" href="#faq">SSS'ye göz at</a>
         </div>
       </div>
     </section>
@@ -68,7 +68,7 @@
           <p class="muted">Formu doldurun ve mail aracalığıyla bir ticket oluşturun.</p>
           <h3>İstek yollamadan önce:</h3>
           <ul class="check-list">
-            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span> <a href="#faq">FAQ</a> Çoğu basit problemi çözüyor.</span></li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Önce <a href="#faq">SSS</a>'ye göz atın; çoğu basit sorunun çözümü orada.</span></li>
             <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Problemin hangi cihaz veya odada olduğunu tespit edin.</span></li>
             <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Zaten daha önceden denediğiniz şeyleri söyleyin.</span></li>
           </ul>
@@ -167,111 +167,110 @@
       </div>
     </section>
 
-    <!-- ===== FAQ — add, edit or remove <details> blocks. Each group becomes a filter button. ===== -->
+    <!-- ===== SSS (sıkça sorulan sorular) — add, edit or remove <details> blocks. Each group becomes a filter button. ===== -->
     <section class="section section-alt" id="faq">
       <div class="container">
         <div class="section-head">
-          <p class="eyebrow">FAQ</p>
-          <h2>Frequently asked questions</h2>
-          <p class="lead">Quick answers and troubleshooting steps. Can't find it? <a href="#request">Send us a request</a>.</p>
+          <p class="eyebrow">SSS</p>
+          <h2>Sıkça sorulan sorular</h2>
+          <p class="lead">Hızlı cevaplar ve sorun giderme adımları. Aradığınızı bulamadınız mı? <a href="#request">Bize bir talep gönderin</a>.</p>
         </div>
 
         <div class="faq-tools">
           <label class="search">
-            <span class="sr-only">Search the FAQ</span>
+            <span class="sr-only">SSS'de ara</span>
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-            <input type="search" id="faq-search" placeholder="Search, e.g. offline, battery, Wi-Fi" autocomplete="off">
+            <input type="search" id="faq-search" placeholder="Ara, örn. çevrimdışı, pil, Wi-Fi" autocomplete="off">
           </label>
-          <div class="chips" data-faq-chips role="group" aria-label="Filter by topic"></div>
+          <div class="chips" data-faq-chips role="group" aria-label="Konuya göre filtrele"></div>
         </div>
 
         <div class="faq-group" id="faq-troubleshooting">
-          <h3>Troubleshooting</h3>
+          <h3>Sorun giderme</h3>
           <details class="faq-item" id="faq-offline">
-            <summary>A device shows as "offline" or "unavailable" in the app</summary>
+            <summary>Bir cihaz uygulamada "çevrimdışı" veya "kullanılamıyor" görünüyor</summary>
             <div class="faq-answer">
               <ol>
-                <li>Check that the device has power: plugged in, switched on at the wall, or fresh batteries.</li>
-                <li>Check that your internet router and the smart home hub are both on.</li>
-                <li>Wi-Fi devices: make sure your Wi-Fi name and password haven't changed recently.</li>
-                <li>Battery sensors can take a few minutes to report back after a restart. Press the button on the sensor to wake it up.</li>
-                <li>Still offline after 15 minutes? <a href="#request">Send a support request</a> and mention which device it is.</li>
+                <li>Cihazın elektriği olduğunu kontrol edin: fişe takılı mı, duvar anahtarı açık mı, pilleri yeni mi?</li>
+                <li>İnternet modeminizin ve Ana Sistem'in açık olduğunu kontrol edin.</li>
+                <li>Wi-Fi cihazları: Wi-Fi adınızın ve şifrenizin yakın zamanda değişmediğinden emin olun.</li>
+                <li>Pilli sensörlerin yeniden başladıktan sonra bağlanması birkaç dakika sürebilir. Uyandırmak için sensörün üzerindeki düğmeye basın.</li>
+                <li>15 dakika sonra hâlâ çevrimdışı mı? <a href="#request">Destek talebi gönderin</a> ve hangi cihaz olduğunu belirtin.</li>
               </ol>
             </div>
           </details>
           <details class="faq-item" id="faq-automation">
-            <summary>An automation didn't run (for example the lights didn't switch on)</summary>
+            <summary>Bir otomasyon çalışmadı (örneğin ışıklar yanmadı)</summary>
             <div class="faq-answer">
               <ol>
-                <li>Check that all devices involved are online (see the question above).</li>
-                <li>Check the time and conditions of the automation in the app, for example "only after sunset".</li>
-                <li>If a motion sensor is involved: it only reports again after a short pause, so walk out of view for a minute and try again.</li>
+                <li>İlgili tüm cihazların çevrimiçi olduğunu kontrol edin (yukarıdaki soruya bakın).</li>
+                <li>Uygulamada otomasyonun saatini ve koşullarını kontrol edin, örneğin "yalnızca gün batımından sonra".</li>
+                <li>İşin içinde bir hareket sensörü varsa: kısa bir aradan sonra tekrar algılar. Bir dakika görüş alanından çıkıp yeniden deneyin.</li>
               </ol>
-              <p>[Add how customers can see or change their automations, or whether they should ask you.]</p>
+              <p>Bir otomasyonu değiştirmek veya yenisini eklemek isterseniz <a href="#request">destek talebi gönderin</a>; çoğu ayarı uzaktan yapıyoruz.</p>
             </div>
           </details>
           <details class="faq-item" id="faq-battery">
-            <summary>How do I replace the battery in a sensor?</summary>
+            <summary>Bir sensörün pilini nasıl değiştiririm?</summary>
             <div class="faq-answer">
-              <p>Most sensors open by sliding or twisting off the back cover. Note the battery type printed inside (often a CR2032 or CR2450 coin cell), insert the new one the same way round and close the cover. The sensor reconnects by itself within a few minutes.</p>
-              <p>[Add device-specific instructions or photos if needed.]</p>
+              <p>Çoğu sensörün arka kapağı kaydırılarak veya çevrilerek açılır. İçeride yazan pil tipine bakın (genellikle CR2032 veya CR2450 düğme pil), yenisini aynı yönde takın ve kapağı kapatın. Sensör birkaç dakika içinde kendiliğinden yeniden bağlanır.</p>
             </div>
           </details>
           <details class="faq-item" id="faq-wifi">
-            <summary>I've got a new router or changed my Wi-Fi password</summary>
+            <summary>Yeni bir modem aldım veya Wi-Fi şifremi değiştirdim</summary>
             <div class="faq-answer">
-              <p>Wi-Fi devices need to be told about the new network. [Explain whether customers can do this themselves in the app, or whether you do it remotely or during a visit.]</p>
+              <p>Wi-Fi cihazlarının yeni ağa tanıtılması gerekir. <a href="#request">Destek talebi gönderin</a>; teknisyenimiz cihazlarınızı yeni ağa bağlasın.</p>
             </div>
           </details>
           <details class="faq-item" id="faq-internet">
-            <summary>Does the system still work when the internet is down?</summary>
+            <summary>İnternet kesildiğinde sistem çalışmaya devam eder mi?</summary>
             <div class="faq-answer">
-              <p>[Explain what keeps working locally (for example automations and the wall panel) and what needs internet (for example control from outside the home).]</p>
+              <p>Evet. Sistem evinizde çalışır; internet kesilse de temel otomasyonlar durmaz. Evin dışından uzaktan kontrol için ise internet bağlantısı gerekir.</p>
             </div>
           </details>
         </div>
 
         <div class="faq-group" id="faq-ordering">
-          <h3>Ordering &amp; payment</h3>
+          <h3>Sipariş ve ödeme</h3>
           <details class="faq-item">
-            <summary>How can I pay?</summary>
-            <div class="faq-answer"><p>[List the payment methods you enable in Stripe, e.g. iDEAL, credit card, Bancontact.]</p></div>
+            <summary>Nasıl ödeyebilirim?</summary>
+            <div class="faq-answer"><p>[Kabul ettiğiniz ödeme yöntemlerini yazın, örn. kredi kartı, banka kartı.]</p></div>
           </details>
           <details class="faq-item">
-            <summary>When will my order be delivered?</summary>
-            <div class="faq-answer"><p>[Delivery times, and how installation is scheduled.]</p></div>
+            <summary>Siparişim ne zaman teslim edilir?</summary>
+            <div class="faq-answer"><p>Teklifinizi onayladıktan sonra siparişinizi hazırlamaya başlıyoruz. Ürünler hazır olduğunda (ortalama 2-3 gün) sizinle iletişime geçip bir kurulum günü ayarlıyoruz.</p></div>
           </details>
           <details class="faq-item">
-            <summary>Can I cancel or return my order?</summary>
-            <div class="faq-answer"><p>[Your cancellation and return policy, in line with the <a href="/terms.html">terms and conditions</a>.]</p></div>
+            <summary>Siparişimi iptal edebilir veya iade edebilir miyim?</summary>
+            <div class="faq-answer"><p>Evet, 14 gün içinde iade hakkınız vardır. Ayrıntılar için <a href="/terms.html">kullanım koşullarına</a> bakın.</p></div>
           </details>
         </div>
 
         <div class="faq-group" id="faq-installation">
-          <h3>Installation</h3>
+          <h3>Kurulum</h3>
           <details class="faq-item">
-            <summary>How long does an installation take?</summary>
-            <div class="faq-answer"><p>[Typical duration per package or home size.]</p></div>
+            <summary>Kurulum ne kadar sürer?</summary>
+            <div class="faq-answer"><p>Kurulum başladıktan sonra ortalama 2-3 saat sürer.</p></div>
           </details>
           <details class="faq-item">
-            <summary>Do I need to prepare anything?</summary>
-            <div class="faq-answer"><p>[e.g. Working Wi-Fi, access to the meter cupboard, someone at home who will use the system.]</p></div>
+            <summary>Önceden bir şey hazırlamam gerekiyor mu?</summary>
+            <div class="faq-answer"><p>Hayır, bir şey hazırlamanıza gerek yok. Teknisyenimiz evinize gelip cihazları teker teker planlanan şekilde kurar.</p></div>
           </details>
         </div>
 
         <div class="faq-group" id="faq-maintenance">
-          <h3>Maintenance &amp; warranty</h3>
+          <h3>Bakım ve garanti</h3>
           <details class="faq-item">
-            <summary>What does the warranty cover?</summary>
-            <div class="faq-answer"><p>[Warranty on devices and on installation work, and how long it lasts.]</p></div>
+            <summary>Garanti neleri kapsar?</summary>
+            <div class="faq-answer"><p>Ürünlerde herhangi bir sorunla karşılaşmanız durumunda şirketimiz tarafından garanti kapsamında karşılanır. Garanti süresi ürünlerin kendi garantileri kadardır. Ana Sistem bozulursa bir ücret karşılığında değiştirilir.</p></div>
           </details>
           <details class="faq-item">
-            <summary>Do I need regular maintenance?</summary>
-            <div class="faq-answer"><p>[e.g. Battery replacements, updates, periodic check-ups. See also <a href="/services.html#aftercare">aftercare</a>.]</p></div>
+            <summary>Düzenli bakım gerekiyor mu?</summary>
+            <div class="faq-answer"><p>Çok az. Sisteminiz güncellemeleri otomatik uygular; pilli sensörlerin pillerini zamanla değiştirmeniz yeterlidir. Bakım ziyareti isterseniz talebinizden itibaren ortalama 7 iş günü içinde ziyaret ediyoruz. Ayrıca <a href="/services.html#aftercare">kurulum sonrası bakım</a> sayfasına bakın.</p></div>
           </details>
         </div>
 
-        <p class="empty" id="faq-empty" hidden>No questions match your search. <a href="#request">Ask us directly</a>.</p>
+        <p class="empty" id="faq-empty" hidden>Aramanıza uygun soru bulunamadı. <a href="#request">Bize doğrudan sorun</a>.</p>
       </div>
     </section>
   </main>
@@ -306,7 +305,7 @@
         <h2>Yardım</h2>
         <ul class="footer-links">
           <li><a href="/support.html#request">Destek talebi</a></li>
-          <li><a href="/support.html#faq">Sıkça sorulan sorular</a></li>
+          <li><a href="/support.html#faq">SSS</a></li>
           <li><a href="/services.html#aftercare">Bakım</a></li>
         </ul>
       </div>
