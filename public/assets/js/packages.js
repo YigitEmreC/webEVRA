@@ -6,6 +6,7 @@
 import { packages } from "../../data/catalog.js";
 import { formatMoney, packageValueCents, toCents } from "./pricing.js";
 import { getOrder, setPackage, onOrderChange } from "./cart-store.js";
+import { removeButtonHtml, bindSwitcher } from "./package-switcher.js";
 import { escapeHtml, icon } from "./ui.js";
 
 const COMPACT_ITEMS = 4;
@@ -23,11 +24,12 @@ export function initPackages() {
 function render(root, list, compact) {
   const draw = () => {
     const selected = getOrder().package;
-    root.innerHTML = list.map((p) => card(p, compact, p.id === selected)).join("");
+    root.innerHTML = list.map((p) => card(p, compact, p.id === selected, Boolean(selected))).join("");
   };
   draw();
   onOrderChange(draw);
 
+  bindSwitcher(root); // "Paketi kaldır" on the selected card
   root.addEventListener("click", (e) => {
     const button = e.target.closest("[data-choose]");
     if (!button) return;
@@ -36,7 +38,7 @@ function render(root, list, compact) {
   });
 }
 
-function card(p, compact, selected) {
+function card(p, compact, selected, hasPackage) {
   const id = escapeHtml(p.id);
   const price = toCents(p.price);
   const value = packageValueCents(p);
@@ -64,9 +66,10 @@ function card(p, compact, selected) {
         ${
           selected
             ? `<a class="btn btn-primary" href="/products.html">Ekstra ürün seçimine devam et</a>`
-            : `<button type="button" class="btn btn-primary" data-choose="${id}">Bu paketi seç</button>`
+            : `<button type="button" class="btn btn-primary" data-choose="${id}">${hasPackage ? "Bu pakete geç" : "Bu paketi seç"}</button>`
         }
         ${compact ? `<a class="btn btn-secondary" href="/packages.html#package-${id}">Detaylar</a>` : ""}
+        ${selected ? removeButtonHtml() : ""}
       </div>
     </article>`;
 }

@@ -10,6 +10,7 @@ import { products } from "../../data/catalog.js";
 import { findItem, formatMoney, toCents } from "./pricing.js";
 import { getOrder, extraQty, extrasCount, setExtraQty, onOrderChange, MAX_QTY } from "./cart-store.js";
 import { escapeHtml, icon, mediaHtml, toast } from "./ui.js";
+import { switcherHtml, removeButtonHtml, bindSwitcher } from "./package-switcher.js";
 
 const ALL = "all";
 
@@ -50,6 +51,7 @@ export function initProducts() {
     .join("");
 
   list.innerHTML = products.map(card).join("");
+  revealOnScroll(list);
 
   // Bottom bar shown while choosing extras
   const bar = document.createElement("div");
@@ -123,14 +125,16 @@ export function initProducts() {
     const included = new Set(choosing ? pkg.items.map((i) => i.id) : []);
 
     banner.innerHTML = choosing
-      ? `<div class="mode-banner is-active">
-          <div>
-            <p class="mode-title">${icon("check")}<span>Seçtiğiniz paket: <strong>${escapeHtml(pkg.name)}</strong></span></p>
-            <p class="muted">Paketinize eklemek istediğiniz ekstra ürünleri seçin. Ekstra ürünlerin fiyatı sizinle iletişime geçtiğimizde birlikte belirlenir.</p>
+      ? `<div class="mode-banner is-active is-stacked">
+          <div class="mode-head">
+            <p class="mode-title">${icon("check")}<span>Paketiniz: <strong>${escapeHtml(pkg.name)}</strong></span></p>
+            ${removeButtonHtml()}
           </div>
+          <p class="muted">Paketi değiştirmek için aşağıdan birine dokunun; seçtiğiniz ekstra ürünler korunur. Ekstra ürünlerin fiyatı sizinle iletişime geçtiğimizde birlikte belirlenir.</p>
+          ${switcherHtml(pkg.id)}
           <div class="mode-actions">
             <a class="btn btn-primary" href="/cart.html">Devam et</a>
-            <a class="btn btn-secondary" href="/packages.html">Paketi değiştir</a>
+            <a class="text-link" href="/packages.html#package-${escapeHtml(pkg.id)}">Paket detayları</a>
           </div>
         </div>`
       : `<div class="mode-banner">
@@ -208,6 +212,7 @@ export function initProducts() {
     else if (after === 0) toast(`${p.name} çıkarıldı`);
   });
 
+  bindSwitcher(banner);
   onOrderChange(syncOrder);
   syncOrder();
   apply();
@@ -216,18 +221,54 @@ export function initProducts() {
   if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
 }
 
+const CONNECTION = /zigbee|wi-?fi|matter|thread/i;
+
+/** A full-width panel: blurred product photo behind, the original photo in a
+    small box, and the product's specs next to it. */
 function card(p) {
   const id = escapeHtml(p.id);
-  const features = (p.features || []).map((f) => `<li>${escapeHtml(f)}</li>`).join("");
+  const features = p.features || [];
+  const connection = features.filter((f) => CONNECTION.test(f));
+  const other = features.filter((f) => !CONNECTION.test(f));
+  const [type, model] = p.name.includes(" – ") ? p.name.split(" – ") : [p.name, ""];
+  const specs = [
+    ["Ürün", type],
+    ["Model", model],
+    ["Kategori", p.category],
+    ["Bağlantı", connection.join(" · ")],
+    ["Özellikler", other.join(" · ")],
+  ].filter(([, value]) => value);
+  const bg = p.image ? ` style="--panel-bg: url('${escapeHtml(p.image)}')"` : "";
+
   return `
-    <article class="card product-card" data-id="${id}" id="product-${id}">
-      <div class="card-media">${mediaHtml(p)}</div>
-      <div class="card-body">
+    <article class="product-panel product-card${p.image ? "" : " no-image"}" data-id="${id}" id="product-${id}"${bg}>
+      <div class="panel-bg" aria-hidden="true"></div>
+      <div class="panel-media">${mediaHtml(p)}</div>
+      <div class="panel-body">
         <p class="card-kicker">${escapeHtml(p.category)} <span class="included-tag" data-included hidden>Paketinizde var</span></p>
-        <h3 class="card-title">${escapeHtml(p.name)}</h3>
-        <p class="card-text">${escapeHtml(p.description)}</p>
-        ${features ? `<ul class="tag-list">${features}</ul>` : ""}
+        <h3 class="panel-title">${escapeHtml(p.name)}</h3>
+        <dl class="panel-specs">
+          ${specs.map(([label, value]) => `<div><dt>${label}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}
+        </dl>
+        <p class="panel-desc">${escapeHtml(p.description)}</p>
+        <div class="card-footer" hidden></div>
       </div>
-      <div class="card-footer" hidden></div>
     </article>`;
+}
+
+/** Panels slide in as they scroll into view (skipped for reduced motion). */
+function revealOnScroll(list) {
+  if (!("IntersectionObserver" in window) || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.classList.add("is-in");
+        observer.unobserve(entry.target);
+      }
+    },
+    { rootMargin: "0px 0px -8% 0px" }
+  );
+  list.classList.add("reveal");
+  list.querySelectorAll(".product-panel").forEach((el) => observer.observe(el));
 }

@@ -6,6 +6,7 @@
 import { getOrder, setExtraQty, removeExtra, clearOrder, extrasCount, onOrderChange, MAX_QTY } from "./cart-store.js";
 import { findItem, formatMoney, toCents } from "./pricing.js";
 import { escapeHtml, icon, mediaHtml } from "./ui.js";
+import { switcherHtml, removeButtonHtml, bindSwitcher } from "./package-switcher.js";
 
 export function initCartPage() {
   const layout = document.getElementById("order-layout");
@@ -37,12 +38,12 @@ export function initCartPage() {
     summary.innerHTML = `
       <h2>Sipariş özeti</h2>
       <div class="order-package">
-        <p class="cart-line-kind">Seçilen paket</p>
         <div class="order-package-row">
-          <h3>${escapeHtml(pkg.name)}</h3>
-          <span class="price">${formatMoney(toCents(pkg.price))}</span>
+          <p class="cart-line-kind">Paketiniz</p>
+          ${removeButtonHtml()}
         </div>
-        <a class="text-link" href="/packages.html">Paketi değiştir</a>
+        ${switcherHtml(pkg.id)}
+        <p class="hint-small">Değiştirmek için bir pakete dokunun; ekstra ürünleriniz korunur. <a href="/packages.html#package-${escapeHtml(pkg.id)}">Paket detayları</a></p>
       </div>
 
       <div class="order-extras">
@@ -95,6 +96,8 @@ export function initCartPage() {
     const remove = e.target.closest("[data-remove]");
     if (remove) removeExtra(remove.dataset.remove);
   });
+
+  bindSwitcher(summary);
 
   // forms.js sends the form; once it succeeded, the request is done.
   form.addEventListener("form:success", clearOrder);

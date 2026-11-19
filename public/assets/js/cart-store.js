@@ -72,6 +72,11 @@ export function removeExtra(id) {
   setExtraQty(id, 0);
 }
 
+/** Removes the package. Extras can't be bought without one, so they go too. */
+export function removePackage() {
+  write({ package: null, extras: [] });
+}
+
 export function clearOrder() {
   write({ package: null, extras: [] });
 }
