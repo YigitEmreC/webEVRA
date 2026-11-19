@@ -12,6 +12,7 @@ import { orderAutoReply } from "../../lib/email-templates.js";
 import { findItem, formatMoney, toCents } from "../../public/assets/js/pricing.js";
 
 const MAX_EXTRAS = 50;
+const MAX_QTY = 20;
 
 export async function onRequestPost({ request, env }) {
   if (!sameOrigin(request)) return json({ error: "Forbidden." }, 403);
@@ -28,11 +29,16 @@ export async function onRequestPost({ request, env }) {
   if (!pkg || pkg.kind !== "package") {
     return json({ error: "Lütfen önce bir paket seçin." }, 400);
   }
-  // Only real products, no duplicates, no packages as "extras"
-  const extras = [...new Set(String(body.extras || "").split(","))]
-    .map((id) => findItem(id.trim()))
-    .filter((item) => item && item.kind === "product")
-    .slice(0, MAX_EXTRAS);
+  // "id:qty,id:qty" → only real products (no packages), quantities 1–20, duplicates merged
+  const merged = new Map();
+  for (const part of String(body.extras || "").split(",").slice(0, MAX_EXTRAS * 2)) {
+    const [rawId, rawQty] = part.split(":");
+    const item = findItem(String(rawId || "").trim());
+    const qty = Math.floor(Number(rawQty ?? 1));
+    if (!item || item.kind !== "product" || !(qty > 0)) continue;
+    merged.set(item.id, { item, qty: Math.min((merged.get(item.id)?.qty || 0) + qty, MAX_QTY) });
+  }
+  const extras = [...merged.values()].slice(0, MAX_EXTRAS);
 
   const form = {
     name: line(body.name, 100),
@@ -40,6 +46,7 @@ export async function onRequestPost({ request, env }) {
     phone: line(body.phone, 40),
     address: line(body.address, 200),
     callTime: line(body.callTime, 80),
+    wishes: text(body.wishes, 2000),
     message: text(body.message, 3000),
   };
   if (!form.name || !isEmail(form.email) || !form.phone || !form.address || !body.consent) {
@@ -55,7 +62,8 @@ export async function onRequestPost({ request, env }) {
 
   const ticket = ticketId();
   const packageLine = `${pkg.name} – ${formatMoney(toCents(pkg.price))}`;
-  const extrasText = extras.length ? extras.map((item) => `• ${item.name}`).join("\n") : "Yok";
+  const extrasText = extras.length ? extras.map(({ item, qty }) => `• ${qty} × ${item.name}`).join("\n") : "Yok";
+  const totalLine = `${formatMoney(toCents(pkg.price))}${extras.length ? " + ek ürün fiyatları" : ""}`;
 
   try {
     await sendEmail(env, {
@@ -66,6 +74,8 @@ export async function onRequestPost({ request, env }) {
         ["Referans", ticket],
         ["Paket", packageLine],
         ["Ekstra ürünler (fiyat görüşülecek)", extrasText],
+        ["Toplam", totalLine],
+        ["İstedikleri (listede olmayan)", form.wishes],
         ["Ad soyad", form.name],
         ["Telefon", form.phone],
         ["E-posta", form.email],
@@ -80,7 +90,7 @@ export async function onRequestPost({ request, env }) {
   }
 
   try {
-    const reply = orderAutoReply({ ...form, ticket, packageLine, extrasText });
+    const reply = orderAutoReply({ ...form, ticket, packageLine, extrasText, totalLine });
     await sendEmail(env, { to: form.email, replyTo: to, subject: reply.subject, text: reply.text, html: textToHtml(reply.text) });
   } catch (err) {
     console.error("order: auto-reply failed", err); // the request itself did arrive, so still report success

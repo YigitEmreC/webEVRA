@@ -7,8 +7,8 @@
 // The chosen category and search text are kept in the URL (?kategori=…&ara=…).
 
 import { products } from "../../data/catalog.js";
-import { findItem } from "./pricing.js";
-import { getOrder, toggleExtra, onOrderChange } from "./cart-store.js";
+import { findItem, formatMoney, toCents } from "./pricing.js";
+import { getOrder, extraQty, extrasCount, setExtraQty, onOrderChange, MAX_QTY } from "./cart-store.js";
 import { escapeHtml, icon, mediaHtml, toast } from "./ui.js";
 
 const ALL = "all";
@@ -143,31 +143,41 @@ export function initProducts() {
           </div>
         </div>`;
 
+    const focusKey = document.activeElement?.dataset?.focusKey;
     list.querySelectorAll(".product-card").forEach((el) => {
       const id = el.dataset.id;
+      const name = escapeHtml(byId.get(id).name);
       const footer = el.querySelector(".card-footer");
-      const tag = el.querySelector("[data-included]");
-      tag.hidden = !included.has(id);
-      if (!choosing) {
-        footer.hidden = true;
-        return;
-      }
-      footer.hidden = false;
-      const on = order.extras.includes(id);
-      const btn = footer.querySelector("[data-extra]");
-      btn.setAttribute("aria-pressed", String(on));
-      btn.classList.toggle("btn-primary", !on);
-      btn.classList.toggle("btn-secondary", on);
-      btn.innerHTML = on ? `${icon("check")} Eklendi` : "Ekstra olarak ekle";
+      el.querySelector("[data-included]").hidden = !included.has(id);
+      footer.hidden = !choosing;
+      if (!choosing) return;
+      const qty = extraQty(id, order);
+      const key = `${qty ? "q" : "a"}-${id}`;
+      if (footer.dataset.state === key) return; // nothing changed on this card
+      footer.dataset.state = key;
+      footer.innerHTML = qty
+        ? `<div class="qty-row">
+            <div class="stepper" role="group" aria-label="${name}: ekstra adet">
+              <button type="button" data-qty="${escapeHtml(id)}" data-delta="-1" data-focus-key="dec-${escapeHtml(id)}" aria-label="${qty === 1 ? "Çıkar" : "Bir azalt"}">−</button>
+              <output>${qty}</output>
+              <button type="button" data-qty="${escapeHtml(id)}" data-delta="1" data-focus-key="inc-${escapeHtml(id)}" aria-label="Bir artır" ${qty >= MAX_QTY ? "disabled" : ""}>+</button>
+            </div>
+            <span class="qty-label">${icon("check")} ekstra olarak eklendi</span>
+          </div>`
+        : `<button type="button" class="btn btn-primary btn-sm btn-block" data-qty="${escapeHtml(id)}" data-delta="1" data-focus-key="dec-${escapeHtml(id)}" aria-label="${name}: ekstra olarak ekle">Ekstra olarak ekle</button>`;
     });
+    if (focusKey) list.querySelector(`[data-focus-key="${focusKey}"]`)?.focus();
 
     bar.hidden = !choosing;
     document.body.classList.toggle("has-order-bar", choosing);
     if (choosing) {
-      const n = order.extras.length;
+      const n = extrasCount(order);
       bar.innerHTML = `
         <div class="container order-bar-inner">
-          <p><strong>${escapeHtml(pkg.name)}</strong><span class="muted"> · ${n ? `${n} ekstra ürün` : "ekstra ürün yok"}</span></p>
+          <p>
+            <strong>${escapeHtml(pkg.name)}</strong><span class="muted"> · ${n ? `${n} ekstra ürün` : "ekstra ürün yok"}</span><br>
+            <span class="order-bar-price">${formatMoney(toCents(pkg.price))}${n ? ` <span class="muted">+ ek ürün fiyatları</span>` : ""}</span>
+          </p>
           <a class="btn btn-primary" href="/cart.html">Devam et</a>
         </div>`;
     }
@@ -188,11 +198,14 @@ export function initProducts() {
     if (e.target.closest("[data-clear]")) clearAll();
   });
   list.addEventListener("click", (e) => {
-    const button = e.target.closest("[data-extra]");
+    const button = e.target.closest("[data-qty]");
     if (!button) return;
-    const p = byId.get(button.dataset.extra);
-    const on = toggleExtra(p.id);
-    toast(on ? `${p.name} ekstra olarak eklendi` : `${p.name} çıkarıldı`, { href: "/cart.html", text: "Siparişim" });
+    const p = byId.get(button.dataset.qty);
+    const before = extraQty(p.id);
+    const after = Math.max(0, Math.min(before + Number(button.dataset.delta), MAX_QTY));
+    setExtraQty(p.id, after);
+    if (before === 0) toast(`${p.name} ekstra olarak eklendi`, { href: "/cart.html", text: "Siparişim" });
+    else if (after === 0) toast(`${p.name} çıkarıldı`);
   });
 
   onOrderChange(syncOrder);
@@ -215,8 +228,6 @@ function card(p) {
         <p class="card-text">${escapeHtml(p.description)}</p>
         ${features ? `<ul class="tag-list">${features}</ul>` : ""}
       </div>
-      <div class="card-footer" hidden>
-        <button type="button" class="btn btn-primary btn-sm btn-block" data-extra="${id}" aria-pressed="false" aria-label="${escapeHtml(p.name)}: ekstra olarak ekle">Ekstra olarak ekle</button>
-      </div>
+      <div class="card-footer" hidden></div>
     </article>`;
 }

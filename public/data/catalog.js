@@ -338,7 +338,7 @@ export const products = [
 //  • `price`, müşterinin paketin tamamı için ödediği tutardır (kurulum dahil
 //    olabilir). Ayrı ayrı ürün toplamından düşükse kartta otomatik olarak
 //    "ayrı ayrı … değerinde" yazar.
-//    ŞU AN: price = tablodaki ürün maliyeti toplamı (kurulum ve kâr hariç).
+//    Fiyatlar KDV dahil satış fiyatıdır.
 //  • `featured: true` paketi ana sayfada da gösterir.
 //  • `badge` isteğe bağlı etiket, örn. "En popüler". Yoksa "" bırakın.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -352,7 +352,7 @@ export const packages = [
     id: "genel-ev",
     name: "Genel Ev Paketi",
     context: "Konfor ve enerji tasarrufu isteyen evler için",
-    price: 32083.54,
+    price: 54999,
     featured: true,
     badge: "En popüler",
     description: "Aydınlatma, kombi kontrolü, duvar ekranı ve temel güvenlik sensörleriyle eksiksiz bir akıllı ev başlangıcı.",
@@ -384,7 +384,7 @@ export const packages = [
     id: "yasli",
     name: "Yaşlı Paketi",
     context: "Bağımsız yaşamaya devam etmek isteyen büyükleriniz için",
-    price: 23632.81,
+    price: 37650,
     featured: true,
     badge: "",
     description: "Hareket ve varlık sensörleri, acil yardım butonları ve güvenlik dedektörleriyle yakınlarınız güvende, siz içiniz rahat olacak.",
@@ -414,7 +414,7 @@ export const packages = [
     id: "bebek",
     name: "Bebek Paketi",
     context: "Yeni doğan bebeği olan aileler için",
-    price: 21021.59,
+    price: 35650,
     featured: true,
     badge: "",
     description: "Ağlama algılayan kamera, oda sıcaklığı takibi, pencere sensörleri ve güvenlik dedektörleriyle bebek odası kontrol altında.",
