@@ -141,9 +141,8 @@ export async function onRequestPost({ request, env }) {
 /** "Salon: 1 × Duvar ekranı, 1 × …" per room of the customer's floor plan. */
 function roomsText(pkg) {
   const { rooms, unplaced } = roomSummary(pkg);
-  const line = (items) => items.map(({ item, qty }) => `${qty} × ${item.name}`).join(", ");
-  const lines = rooms.map((r) => `${r.label}: ${line(r.items)}`);
-  if (unplaced.length) lines.push(`Odası seçilmemiş: ${line(unplaced)}`);
-  return lines.join("
-") || "—";
+  const list = (items) => items.map(({ item, qty }) => `${qty} × ${item.name}`).join(", ");
+  const lines = rooms.map((r) => `${r.label}: ${list(r.items)}`);
+  if (unplaced.length) lines.push(`Odası seçilmemiş: ${list(unplaced)}`);
+  return lines.join("\n") || "—";
 }
