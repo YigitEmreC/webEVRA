@@ -5,13 +5,15 @@
 import { packages } from "../../data/catalog.js";
 import { formatMoney, toCents } from "./pricing.js";
 import { getOrder, setPackage, removePackage, extrasCount } from "./cart-store.js";
+import { CUSTOM_ID, customPackage } from "./builder-core.js";
 import { escapeHtml, toast } from "./ui.js";
 
-/** The three packages as selectable options; the current one is marked. */
+/** The packages (and the customer's own one, if made) as options; the current one is marked. */
 export function switcherHtml(currentId, { label = "Paketiniz" } = {}) {
+  const own = customPackage(getOrder().custom);
   return `
     <div class="pkg-switch" role="group" aria-label="${escapeHtml(label)}">
-      ${packages
+      ${[...(own ? [own] : []), ...packages]
         .map(
           (p) => `
         <button type="button" class="pkg-option" data-switch-package="${escapeHtml(p.id)}" aria-pressed="${p.id === currentId}">
@@ -34,9 +36,14 @@ export function bindSwitcher(root) {
     if (option) {
       const id = option.dataset.switchPackage;
       if (getOrder().package === id) return;
+      const hadExtras = extrasCount() > 0;
       setPackage(id);
-      const name = packages.find((p) => p.id === id)?.name || "";
-      toast(`Paketiniz ${name} olarak değiştirildi${extrasCount() ? "; ekstra ürünleriniz korundu" : ""}`);
+      const name = id === CUSTOM_ID ? customPackage(getOrder().custom)?.name : packages.find((p) => p.id === id)?.name;
+      toast(
+        `Paketiniz ${name || ""} olarak değiştirildi${
+          hadExtras ? (id === CUSTOM_ID ? "; ekstra ürünler paketinize eklendi" : "; ekstra ürünleriniz korundu") : ""
+        }`
+      );
       return;
     }
     if (e.target.closest("[data-remove-package]")) {

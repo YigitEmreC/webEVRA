@@ -8,12 +8,16 @@
 //    inbox: satis@ (settings.js → email.sales). Pressing Reply goes to the customer.
 // 3. Sends the customer a confirmation (wording: lib/email-templates.js).
 // Then we call the customer, agree on the extras' price and book the installation.
+// A package made with "Kendi paketini oluştur" (package "ozel") arrives with its
+// contents in `custom`; its price is calculated again here (builder-core.js), so
+// a changed price in the browser can't reach us. It has no extras.
 
 import { json, sameOrigin, readBody, text, line, isEmail, passesTurnstile } from "../../lib/http.js";
 import { emailConfigured, inbox, sendEmail, fieldsEmail, textToHtml } from "../../lib/email.js";
 import { orderAutoReply } from "../../lib/email-templates.js";
 import { findItem, formatMoney, toCents, depositCents } from "../../public/assets/js/pricing.js";
 import { newOrderRef } from "../../lib/order-ref.js";
+import { CUSTOM_ID, customPackage, customPrice, sizeOf, heatingOf } from "../../public/assets/js/builder-core.js";
 
 const MAX_EXTRAS = 50;
 const MAX_QTY = 20;
@@ -29,8 +33,20 @@ export async function onRequestPost({ request, env }) {
   }
   if (body.website) return json({ ok: true }); // spam trap was filled in (no real order number for bots)
 
-  const pkg = findItem(line(body.package, 80));
-  if (!pkg || pkg.kind !== "package") {
+  const pkgId = line(body.package, 80);
+  let pkg = null;
+  if (pkgId === CUSTOM_ID) {
+    try {
+      pkg = customPackage(JSON.parse(String(body.custom || "").slice(0, 5000)));
+    } catch {
+      pkg = null;
+    }
+    if (!pkg) return json({ error: "Paketiniz okunamadı. Lütfen Paketler sayfasından paketinizi yeniden oluşturun." }, 400);
+  } else {
+    pkg = findItem(pkgId);
+    if (!pkg || pkg.kind !== "package") pkg = null;
+  }
+  if (!pkg) {
     return json({ error: "Lütfen önce bir paket seçin." }, 400);
   }
   // "id:qty,id:qty" → only real products (no packages), quantities 1–20, duplicates merged
@@ -42,7 +58,7 @@ export async function onRequestPost({ request, env }) {
     if (!item || item.kind !== "product" || !(qty > 0)) continue;
     merged.set(item.id, { item, qty: Math.min((merged.get(item.id)?.qty || 0) + qty, MAX_QTY) });
   }
-  const extras = [...merged.values()].slice(0, MAX_EXTRAS);
+  const extras = pkg.custom ? [] : [...merged.values()].slice(0, MAX_EXTRAS);
 
   const form = {
     name: line(body.name, 100),
@@ -71,7 +87,18 @@ export async function onRequestPost({ request, env }) {
   const ticket = await newOrderRef(env);
   const depositLine = formatMoney(depositCents(pkg));
   const packageLine = `${pkg.name} – ${formatMoney(toCents(pkg.price))}`;
-  const extrasText = extras.length ? extras.map(({ item, qty }) => `• ${qty} × ${item.name}`).join("\n") : "Yok";
+  const extrasText = pkg.custom
+    ? pkg.items.map(({ id, qty }) => `• ${qty} × ${findItem(id).name}`).join("\n")
+    : extras.length
+      ? extras.map(({ item, qty }) => `• ${qty} × ${item.name}`).join("\n")
+      : "Yok";
+  const customRows = pkg.custom
+    ? [
+        ["Ev / ısıtma", `${sizeOf(pkg.size).label} · ${heatingOf(pkg.heating).name}`],
+        ["Paketteki ürünler", extrasText],
+        ["Fiyat hesabı (iç bilgi)", customPrice(pkg.items).steps.map(([label, cents]) => `${label}: ${formatMoney(cents)}`).join("\n")],
+      ]
+    : [["Ekstra ürünler (fiyat görüşülecek)", extrasText]];
   const totalLine = `${formatMoney(toCents(pkg.price))}${extras.length ? " + ek ürün fiyatları" : ""}`;
 
   try {
@@ -82,7 +109,7 @@ export async function onRequestPost({ request, env }) {
       ...fieldsEmail(`Yeni paket talebi ${ticket}`, [
         ["Referans", ticket],
         ["Paket", packageLine],
-        ["Ekstra ürünler (fiyat görüşülecek)", extrasText],
+        ...customRows,
         ["Toplam", totalLine],
         ["Kapora (%20, havale/EFT) — hesaptan kontrol edin", `${depositLine} · Gönderen: ${form.depositSender}`],
         ["İstedikleri (listede olmayan)", form.wishes],
@@ -100,7 +127,7 @@ export async function onRequestPost({ request, env }) {
   }
 
   try {
-    const reply = orderAutoReply({ ...form, ticket, packageLine, extrasText, totalLine, depositLine });
+    const reply = orderAutoReply({ ...form, ticket, packageLine, extrasText, totalLine, depositLine, custom: Boolean(pkg.custom) });
     await sendEmail(env, { to: form.email, replyTo: to, subject: reply.subject, text: reply.text, html: textToHtml(reply.text) });
   } catch (err) {
     console.error("order: auto-reply failed", err); // the request itself did arrive, so still report success

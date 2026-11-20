@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Packages · [Company]</title>
-  <meta name="description" content="[One sentence about your smart home packages.]">
+  <title>Paketler · Evra</title>
+  <meta name="description" content="Evinize göre kendi akıllı ev paketinizi oluşturun ya da önerilen paketlerimizden birini seçin.">
   <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/css/style.css">
   <script>try{if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}</script>
@@ -51,13 +51,141 @@
       <div class="container">
         <p class="eyebrow">Mağaza</p>
         <h1>Paketler</h1>
-        <p class="lead">Paketinizi seçin, gelip kuralım!</p>
+        <p class="lead">Evinize göre kendi paketinizi oluşturun ya da önerilen paketlerimizden birini seçin, gelip kuralım!</p>
       </div>
     </section>
 
-    <section class="section">
+    <!-- ===== KENDİ PAKETİNİ OLUŞTUR (assets/js/builder.js; options: public/data/builder.js) ===== -->
+    <section class="section" id="kendin-kur">
       <div class="container">
-        <!-- Packages are filled from public/data/catalog.js. Edit contents and prices there. -->
+        <div class="section-head">
+          <p class="eyebrow">Kendin kur</p>
+          <h2>Kendi paketini oluştur</h2>
+          <p class="lead">Evinizi anlatın, istediğiniz ürünleri seçin; paketinizin fiyatını anında görün.</p>
+        </div>
+        <div class="card builder" id="builder">
+          <noscript><p class="card-pad">Paket oluşturmak için lütfen JavaScript'i açın.</p></noscript>
+        </div>
+
+        <!-- 5+1 and larger homes: planning form, e-mailed to the sales inbox by /api/planning -->
+        <div class="planning" id="planning" hidden>
+          <form class="card card-pad form" id="planning-form" data-endpoint="/api/planning">
+            <h3>Birlikte planlayalım</h3>
+            <p class="muted">Evinizi biraz tanıyalım. Ortalama 2 iş günü içinde sizi arayıp keşif ve planlama için gün belirliyoruz; evinize özel teklifi bu görüşmeden sonra hazırlıyoruz.</p>
+            <div class="form-row">
+              <div class="field">
+                <label for="pl-name">Ad soyad</label>
+                <input id="pl-name" name="name" autocomplete="name" required maxlength="100">
+              </div>
+              <div class="field">
+                <label for="pl-phone">Telefon</label>
+                <input id="pl-phone" name="phone" type="tel" autocomplete="tel" required maxlength="40" placeholder="05xx xxx xx xx">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <label for="pl-email">E-posta</label>
+                <input id="pl-email" name="email" type="email" autocomplete="email" required maxlength="254">
+              </div>
+              <div class="field">
+                <label for="pl-city">İlçe / il</label>
+                <input id="pl-city" name="city" required maxlength="120" autocomplete="address-level2">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <label for="pl-type">Ev tipi</label>
+                <select id="pl-type" name="homeType">
+                  <option>Daire</option>
+                  <option>Dubleks / tripleks</option>
+                  <option>Müstakil ev / villa</option>
+                  <option>İş yeri / ofis</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="pl-size">Oda sayısı</label>
+                <select id="pl-size" name="size">
+                  <option>5+1</option>
+                  <option>6+1</option>
+                  <option>7+1 ve üzeri</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <label for="pl-area">Yaklaşık alan (m²) <span class="optional">(isteğe bağlı)</span></label>
+                <input id="pl-area" name="area" inputmode="numeric" maxlength="10" placeholder="örn. 220">
+              </div>
+              <div class="field">
+                <label for="pl-floors">Kat sayısı <span class="optional">(isteğe bağlı)</span></label>
+                <input id="pl-floors" name="floors" inputmode="numeric" maxlength="10" placeholder="örn. 2">
+              </div>
+            </div>
+            <div class="field">
+              <label for="pl-heating">Isıtma sistemi</label>
+              <select id="pl-heating" name="heating">
+                <option>Kombi + petek (radyatör)</option>
+                <option>Kombi + yerden ısıtma</option>
+                <option>Merkezi sistem / kalorifer (petek)</option>
+                <option>Merkezi sistem + yerden ısıtma</option>
+                <option>Klima / ısı pompası</option>
+                <option>Elektrikli ısıtıcı / soba</option>
+                <option>Birden fazla / emin değilim</option>
+              </select>
+            </div>
+            <fieldset class="field">
+              <legend>Neler istiyorsunuz? <span class="optional">(birden fazla seçebilirsiniz)</span></legend>
+              <div class="check-grid">
+                <label class="checkbox"><input type="checkbox" name="interest_light" value="Aydınlatma"><span>Aydınlatma</span></label>
+                <label class="checkbox"><input type="checkbox" name="interest_heat" value="Isıtma ve enerji"><span>Isıtma ve enerji</span></label>
+                <label class="checkbox"><input type="checkbox" name="interest_security" value="Güvenlik ve kamera"><span>Güvenlik ve kamera</span></label>
+                <label class="checkbox"><input type="checkbox" name="interest_blinds" value="Perde ve panjur"><span>Perde ve panjur</span></label>
+                <label class="checkbox"><input type="checkbox" name="interest_garden" value="Bahçe ve sulama"><span>Bahçe ve sulama</span></label>
+                <label class="checkbox"><input type="checkbox" name="interest_care" value="Yaşlı / bebek takibi"><span>Yaşlı / bebek takibi</span></label>
+              </div>
+            </fieldset>
+            <div class="field">
+              <label for="pl-time">Sizi ne zaman arayalım? <span class="optional">(isteğe bağlı)</span></label>
+              <select id="pl-time" name="callTime">
+                <option>Fark etmez</option>
+                <option>Hafta içi sabah (09:00–12:00)</option>
+                <option>Hafta içi öğleden sonra (12:00–18:00)</option>
+                <option>Hafta sonu</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="pl-message">Evinizden ve isteklerinizden bahsedin <span class="optional">(isteğe bağlı)</span></label>
+              <textarea id="pl-message" name="message" maxlength="3000" placeholder="örn. bahçe kameraları, havuz pompası, her katta duvar ekranı…"></textarea>
+            </div>
+            <label class="checkbox">
+              <input type="checkbox" name="consent" value="yes" required>
+              <span>Bilgilerimin bu talebin işlenmesi için <a href="/privacy.html">gizlilik politikasında</a> açıklandığı şekilde Evra tarafından kullanılmasını kabul ediyorum.</span>
+            </label>
+            <!-- Spam trap: hidden from people, bots fill it in -->
+            <div class="hp-field" aria-hidden="true">
+              <label for="pl-website">Bu alanı boş bırakın</label>
+              <input id="pl-website" name="website" tabindex="-1" autocomplete="off">
+            </div>
+            <div class="turnstile-slot"></div>
+            <p class="status is-error" data-status role="alert" hidden></p>
+            <button class="btn btn-primary btn-block" type="submit">Planlama talebini gönder</button>
+          </form>
+          <div class="card form-success" data-success-for="planning-form" tabindex="-1" hidden>
+            <h3>Talebiniz alındı!</h3>
+            <p>Teşekkür ederiz. Ortalama 2 iş günü içinde sizi arayıp keşif ve planlama için gün belirleyeceğiz. Talebinizin bir kopyasını e-posta adresinize gönderdik.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ÖNERİLEN PAKETLER (filled from public/data/catalog.js; edit contents and prices there) ===== -->
+    <section class="section section-alt" id="onerilen">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Hazır paketler</p>
+          <h2>Önerilen paketler</h2>
+          <p class="lead">Uğraşmak istemezseniz en sık ihtiyaçlara göre hazırladığımız paketlerden birini seçin.</p>
+        </div>
         <div class="grid package-grid" id="package-list">
           <noscript><p>Paketleri görmek için lütfen JavaScript'i açın.</p></noscript>
         </div>
@@ -65,7 +193,7 @@
       </div>
     </section>
 
-    <section class="section section-alt">
+    <section class="section">
       <div class="container split split-center">
         <div>
           <p class="eyebrow">Bütün paketler</p>
@@ -81,7 +209,7 @@
       </div>
     </section>
 
-    <section class="section">
+    <section class="section section-alt">
       <div class="container">
         <div class="cta">
           <div>

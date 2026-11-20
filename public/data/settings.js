@@ -35,6 +35,23 @@ export const settings = {
     iban: "[TR00 0000 0000 0000 0000 0000 00]",
   },
 
+  // Price of a package built with "Kendi paketini oluştur", calculated in this order:
+  //   1. products (catalog prices, KDV removed) + productMarkup
+  //   2. + electrician (electrician and service) + travel
+  //   3. + warranty (on the result of step 2)
+  //   4. + margin (our profit)
+  //   5. + vat (KDV)
+  // The result is rounded to whole lira. The breakdown is only in the sales e-mail.
+  pricing: {
+    catalogPricesIncludeVat: true, // catalog.js prices are KDV dahil
+    productMarkup: 0.1,  // %10
+    electrician: 2000,   // TL, elektrikçi ve servis hizmeti
+    travel: 500,         // TL, ulaşım
+    warranty: 0.05,      // %5
+    margin: 0.3,         // %30
+    vat: 0.2,            // %20 KDV
+  },
+
   // Optional spam protection for the contact and support forms.
   // Paste your Cloudflare Turnstile *site key* here (see README → Spam protection).
   turnstileSiteKey: "0x4AAAAAAGJE1nJAyKWWO1ZE",

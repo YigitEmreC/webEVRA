@@ -3,8 +3,11 @@
 // bank transfer first and confirms it in the form; the form is e-mailed to the
 // sales inbox by /api/order, and we call the customer to agree the extras' price
 // and plan the installation.
+// An own package ("Kendi paketini oluştur") has an exact price and no extras:
+// its products are listed instead, with a link back to the builder.
 
 import { getOrder, setExtraQty, removeExtra, clearOrder, extrasCount, onOrderChange, MAX_QTY } from "./cart-store.js";
+import { orderPackage, sizeOf, heatingOf } from "./builder-core.js";
 import { findItem, formatMoney, toCents, depositCents } from "./pricing.js";
 import { settings } from "../../data/settings.js";
 import { escapeHtml, icon, mediaHtml } from "./ui.js";
@@ -19,24 +22,26 @@ export function initCartPage() {
   const form = document.getElementById("order-form");
   const pkgInput = form.querySelector("[data-order-package]");
   const extrasInput = form.querySelector("[data-order-extras]");
+  const customInput = form.querySelector("[data-order-custom]");
   const depositBox = form.querySelector("[data-deposit]");
 
   function render() {
     const focusKey = document.activeElement?.dataset?.focusKey;
     const order = getOrder();
-    const pkg = order.package ? findItem(order.package) : null;
-    const valid = pkg && pkg.kind === "package";
+    const pkg = orderPackage(order);
+    const valid = Boolean(pkg);
     empty.hidden = Boolean(valid);
     layout.hidden = !valid;
     if (!valid) return;
 
-    const extras = order.extras
+    const extras = (pkg.custom ? [] : order.extras)
       .map(({ id, qty }) => ({ item: findItem(id), qty }))
       .filter(({ item }) => item && item.kind === "product");
     const count = extrasCount({ extras: extras.map(({ item, qty }) => ({ id: item.id, qty })) });
     pkgInput.value = pkg.id;
     // Sent as "id:qty,id:qty"
     extrasInput.value = extras.map(({ item, qty }) => `${item.id}:${qty}`).join(",");
+    customInput.value = pkg.custom ? JSON.stringify({ size: pkg.size, heating: pkg.heating, items: pkg.items }) : "";
 
     summary.innerHTML = `
       <h2>Sipariş özeti</h2>
@@ -46,10 +51,12 @@ export function initCartPage() {
           ${removeButtonHtml()}
         </div>
         ${switcherHtml(pkg.id)}
-        <p class="hint-small">Değiştirmek için bir pakete dokunun; ekstra ürünleriniz korunur. <a href="/packages.html#package-${escapeHtml(pkg.id)}">Paket detayları</a></p>
+        <p class="hint-small">Değiştirmek için bir pakete dokunun; ${pkg.custom ? "kendi paketiniz kayıtlı kalır." : "ekstra ürünleriniz korunur."} ${
+          pkg.custom ? `<a href="/packages.html#kendin-kur">Paketimi düzenle</a>` : `<a href="/packages.html#package-${escapeHtml(pkg.id)}">Paket detayları</a>`
+        }</p>
       </div>
 
-      <div class="order-extras">
+      ${pkg.custom ? customHtml(pkg) : `<div class="order-extras">
         <p class="cart-line-kind">Ekstra ürünler (${count})</p>
         ${
           extras.length
@@ -57,7 +64,7 @@ export function initCartPage() {
             : `<p class="muted">Ekstra ürün seçmediniz.</p>`
         }
         <a class="text-link" href="/products.html">${extras.length ? "Başka ürün ekle" : "Ekstra ürün ekle"}</a>
-      </div>
+      </div>`}
 
       <div class="order-total">
         <span>Toplam</span>
@@ -68,7 +75,11 @@ export function initCartPage() {
         <strong>${formatMoney(depositCents(pkg))}</strong>
       </div>
 
-      <p class="fine-print">${icon("check")}<span>Paket fiyatı KDV dahildir. ${count ? "Ek ürünlerin fiyatı" : "Ekstra ürün eklerseniz fiyatı"} sizinle iletişime geçtiğimizde birlikte belirlenir; kalan tutar ve kurulum tarihi bu görüşmede netleşir.</span></p>`;
+      <p class="fine-print">${icon("check")}<span>${
+        pkg.custom
+          ? "Fiyata ürünler, elektrikçi ve kurulum hizmeti, ulaşım, garanti ve %20 KDV dahildir. Kalan tutar ve kurulum tarihi sizi aradığımızda netleşir."
+          : `Paket fiyatı KDV dahildir. ${count ? "Ek ürünlerin fiyatı" : "Ekstra ürün eklerseniz fiyatı"} sizinle iletişime geçtiğimizde birlikte belirlenir; kalan tutar ve kurulum tarihi bu görüşmede netleşir.`
+      }</span></p>`;
 
     renderDeposit(pkg);
 
@@ -100,6 +111,25 @@ export function initCartPage() {
     }
     setTimeout(() => (button.textContent = "Kopyala"), 2000);
   });
+
+  /** The own package's products (edited in the builder or on the Products page). */
+  function customHtml(pkg) {
+    const count = pkg.items.reduce((sum, i) => sum + i.qty, 0);
+    return `
+      <div class="order-extras">
+        <p class="cart-line-kind">Paketinizdeki ürünler (${count})</p>
+        <p class="muted">${escapeHtml(sizeOf(pkg.size).label)} ev · ${escapeHtml(heatingOf(pkg.heating).name)}</p>
+        <ul class="pkg-items">
+          ${pkg.items
+            .map(({ id, qty }) => {
+              const item = findItem(id);
+              return `<li><span class="extra-media">${mediaHtml(item)}</span><a href="/products.html#product-${escapeHtml(id)}">${escapeHtml(item.name)}</a><span class="pkg-qty">${qty}×</span></li>`;
+            })
+            .join("")}
+        </ul>
+        <a class="text-link" href="/packages.html#kendin-kur">Paketimi düzenle</a>
+      </div>`;
+  }
 
   function extraHtml({ item, qty }) {
     const id = escapeHtml(item.id);

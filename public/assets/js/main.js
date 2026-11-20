@@ -5,11 +5,12 @@ import { orderCount, onOrderChange } from "./cart-store.js";
 import { ensureToast } from "./ui.js";
 import { initProducts } from "./products.js";
 import { initPackages } from "./packages.js";
+import { initBuilder } from "./builder.js";
 import { initCartPage } from "./cart-page.js";
 import { initForms } from "./forms.js";
 import { initFaq } from "./faq.js";
 
-const features = [initTheme, initNav, initActiveLink, initCartBadge, initYear, ensureToast, initProducts, initPackages, initCartPage, initForms, initFaq, initOrderSuccess];
+const features = [initTheme, initNav, initActiveLink, initCartBadge, initYear, ensureToast, initProducts, initPackages, initBuilder, initCartPage, initForms, initFaq, initOrderSuccess];
 
 for (const init of features) {
   try {

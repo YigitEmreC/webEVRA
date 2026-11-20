@@ -6,11 +6,13 @@
 import * as contact from "./functions/api/contact.js";
 import * as support from "./functions/api/support.js";
 import * as order from "./functions/api/order.js";
+import * as planning from "./functions/api/planning.js";
 
 const routes = {
   "/api/contact": contact,
   "/api/support": support,
   "/api/order": order,
+  "/api/planning": planning,
 };
 
 export default {

@@ -6,10 +6,13 @@
 //    site; it is agreed with the customer when we call them.
 // The chosen category and search text are kept in the URL (?kategori=…&ara=…).
 // ?paket=genel-ev shows only the products inside that package (linked from the Packages page).
+// With an own package ("Kendi paketini oluştur") the buttons change the package
+// itself, and the bar shows its exact price (builder-core.js).
 
 import { products } from "../../data/catalog.js";
 import { findItem, formatMoney, toCents } from "./pricing.js";
-import { getOrder, extraQty, extrasCount, setExtraQty, onOrderChange, MAX_QTY } from "./cart-store.js";
+import { getOrder, extraQty, extrasCount, setExtraQty, customQty, setCustomQty, onOrderChange, MAX_QTY } from "./cart-store.js";
+import { orderPackage, minQty, CUSTOM_MAX_QTY } from "./builder-core.js";
 import { escapeHtml, icon, mediaHtml, toast } from "./ui.js";
 import { switcherHtml, removeButtonHtml, bindSwitcher } from "./package-switcher.js";
 
@@ -129,8 +132,9 @@ export function initProducts() {
   /** Banner, card buttons and bottom bar follow the visitor's package request. */
   function syncOrder() {
     const order = getOrder();
-    const pkg = order.package ? findItem(order.package) : null;
-    const choosing = Boolean(pkg && pkg.kind === "package");
+    const pkg = orderPackage(order);
+    const choosing = Boolean(pkg);
+    const own = Boolean(pkg?.custom);
     const included = new Set(choosing ? pkg.items.map((i) => i.id) : []);
 
     banner.innerHTML = choosing
@@ -139,11 +143,19 @@ export function initProducts() {
             <p class="mode-title">${icon("check")}<span>Paketiniz: <strong>${escapeHtml(pkg.name)}</strong></span></p>
             ${removeButtonHtml()}
           </div>
-          <p class="muted">Paketi değiştirmek için aşağıdan birine dokunun; seçtiğiniz ekstra ürünler korunur. Ekstra ürünlerin fiyatı sizinle iletişime geçtiğimizde birlikte belirlenir.</p>
+          <p class="muted">${
+            own
+              ? "Aşağıdan ürün ekleyip çıkararak paketinizi değiştirebilirsiniz; fiyat anında güncellenir. Başka bir pakete geçmek için birine dokunun."
+              : "Paketi değiştirmek için aşağıdan birine dokunun; seçtiğiniz ekstra ürünler korunur. Ekstra ürünlerin fiyatı sizinle iletişime geçtiğimizde birlikte belirlenir."
+          }</p>
           ${switcherHtml(pkg.id)}
           <div class="mode-actions">
             <a class="btn btn-primary" href="/cart.html">Devam et</a>
-            <a class="text-link" href="/packages.html#package-${escapeHtml(pkg.id)}">Paket detayları</a>
+            ${
+              own
+                ? `<a class="text-link" href="/packages.html#kendin-kur">Paketimi düzenle</a>`
+                : `<a class="text-link" href="/packages.html#package-${escapeHtml(pkg.id)}">Paket detayları</a>`
+            }
           </div>
         </div>`
       : `<div class="mode-banner">
@@ -161,34 +173,37 @@ export function initProducts() {
       const id = el.dataset.id;
       const name = escapeHtml(byId.get(id).name);
       const footer = el.querySelector(".card-footer");
-      el.querySelector("[data-included]").hidden = !included.has(id);
+      el.querySelector("[data-included]").hidden = own || !included.has(id);
       footer.hidden = !choosing;
       if (!choosing) return;
-      const qty = extraQty(id, order);
-      const key = String(qty); // redraw the card only when its quantity changed
+      const qty = own ? customQty(id, order) : extraQty(id, order);
+      const min = own ? minQty(order.custom, id) : 0;
+      const max = own ? CUSTOM_MAX_QTY : MAX_QTY;
+      const key = `${own}:${qty}`; // redraw the card only when its quantity changed
       if (footer.dataset.state === key) return; // nothing changed on this card
       footer.dataset.state = key;
       footer.innerHTML = qty
         ? `<div class="qty-row">
             <div class="stepper" role="group" aria-label="${name}: ekstra adet">
-              <button type="button" data-qty="${escapeHtml(id)}" data-delta="-1" data-focus-key="dec-${escapeHtml(id)}" aria-label="${qty === 1 ? "Çıkar" : "Bir azalt"}">−</button>
+              <button type="button" data-qty="${escapeHtml(id)}" data-delta="-1" data-focus-key="dec-${escapeHtml(id)}" aria-label="${qty === 1 ? "Çıkar" : "Bir azalt"}" ${qty <= min ? "disabled" : ""}>−</button>
               <output>${qty}</output>
-              <button type="button" data-qty="${escapeHtml(id)}" data-delta="1" data-focus-key="inc-${escapeHtml(id)}" aria-label="Bir artır" ${qty >= MAX_QTY ? "disabled" : ""}>+</button>
+              <button type="button" data-qty="${escapeHtml(id)}" data-delta="1" data-focus-key="inc-${escapeHtml(id)}" aria-label="Bir artır" ${qty >= max ? "disabled" : ""}>+</button>
             </div>
-            <span class="qty-label">${icon("check")} ekstra olarak eklendi</span>
+            <span class="qty-label">${icon("check")} ${own ? (min ? "paketinizde (zorunlu)" : "paketinizde") : "ekstra olarak eklendi"}</span>
           </div>`
-        : `<button type="button" class="btn btn-primary btn-sm btn-block" data-qty="${escapeHtml(id)}" data-delta="1" data-focus-key="dec-${escapeHtml(id)}" aria-label="${name}: ekstra olarak ekle">Ekstra olarak ekle</button>`;
+        : `<button type="button" class="btn btn-primary btn-sm btn-block" data-qty="${escapeHtml(id)}" data-delta="1" data-focus-key="dec-${escapeHtml(id)}" aria-label="${name}: ${own ? "paketime ekle" : "ekstra olarak ekle"}">${own ? "Paketime ekle" : "Ekstra olarak ekle"}</button>`;
     });
     if (focusKey) list.querySelector(`[data-focus-key="${focusKey}"]`)?.focus();
 
     bar.hidden = !choosing;
     document.body.classList.toggle("has-order-bar", choosing);
     if (choosing) {
-      const n = extrasCount(order);
+      const n = own ? 0 : extrasCount(order);
+      const count = own ? pkg.items.reduce((sum, i) => sum + i.qty, 0) : 0;
       bar.innerHTML = `
         <div class="container order-bar-inner">
           <p>
-            <strong>${escapeHtml(pkg.name)}</strong><span class="muted"> · ${n ? `${n} ekstra ürün` : "ekstra ürün yok"}</span><br>
+            <strong>${escapeHtml(pkg.name)}</strong><span class="muted"> · ${own ? `${count} ürün, kurulum ve KDV dahil` : n ? `${n} ekstra ürün` : "ekstra ürün yok"}</span><br>
             <span class="order-bar-price">${formatMoney(toCents(pkg.price))}${n ? ` <span class="muted">+ ek ürün fiyatları</span>` : ""}</span>
           </p>
           <a class="btn btn-primary" href="/cart.html">Devam et</a>
@@ -214,11 +229,13 @@ export function initProducts() {
     const button = e.target.closest("[data-qty]");
     if (!button) return;
     const p = byId.get(button.dataset.qty);
-    const before = extraQty(p.id);
-    const after = Math.max(0, Math.min(before + Number(button.dataset.delta), MAX_QTY));
-    setExtraQty(p.id, after);
-    if (before === 0) toast(`${p.name} ekstra olarak eklendi`, { href: "/cart.html", text: "Siparişim" });
-    else if (after === 0) toast(`${p.name} çıkarıldı`);
+    const own = getOrder().package && orderPackage(getOrder())?.custom;
+    const before = own ? customQty(p.id) : extraQty(p.id);
+    if (own) setCustomQty(p.id, before + Number(button.dataset.delta));
+    else setExtraQty(p.id, Math.max(0, Math.min(before + Number(button.dataset.delta), MAX_QTY)));
+    const after = own ? customQty(p.id) : extraQty(p.id);
+    if (before === 0 && after > 0) toast(`${p.name} ${own ? "paketinize eklendi" : "ekstra olarak eklendi"}`, { href: "/cart.html", text: "Siparişim" });
+    else if (after === 0 && before > 0) toast(`${p.name} çıkarıldı`);
   });
 
   bindSwitcher(banner);
@@ -231,8 +248,7 @@ export function initProducts() {
     if (current === lastPackage) return;
     lastPackage = current;
     if (!pkgFilter) return;
-    const next = current ? findItem(current) : null;
-    pkgFilter = next && next.kind === "package" ? next : null;
+    pkgFilter = orderPackage(getOrder());
     apply();
   });
   syncOrder();

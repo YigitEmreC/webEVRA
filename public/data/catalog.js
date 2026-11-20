@@ -350,7 +350,7 @@ const centralSet = [
 export const packages = [
   {
     id: "genel-ev",
-    name: "Genel Ev Paketi",
+    name: "Önerilen Ev Paketi",
     context: "Konfor ve enerji tasarrufu isteyen evler için",
     price: 51999,
     featured: true,
