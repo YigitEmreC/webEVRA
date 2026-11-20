@@ -7,7 +7,7 @@
 // its products are listed instead, with a link back to the builder.
 
 import { getOrder, setExtraQty, removeExtra, clearOrder, extrasCount, onOrderChange, MAX_QTY } from "./cart-store.js";
-import { orderPackage, sizeOf, heatingOf } from "./builder-core.js";
+import { orderPackage, sizeOf, heatingOf, balconyText, roomSummary } from "./builder-core.js";
 import { findItem, formatMoney, toCents, depositCents } from "./pricing.js";
 import { settings } from "../../data/settings.js";
 import { escapeHtml, icon, mediaHtml } from "./ui.js";
@@ -41,7 +41,7 @@ export function initCartPage() {
     pkgInput.value = pkg.id;
     // Sent as "id:qty,id:qty"
     extrasInput.value = extras.map(({ item, qty }) => `${item.id}:${qty}`).join(",");
-    customInput.value = pkg.custom ? JSON.stringify({ size: pkg.size, heating: pkg.heating, items: pkg.items }) : "";
+    customInput.value = pkg.custom ? JSON.stringify({ size: pkg.size, balconies: pkg.balconies, heating: pkg.heating, items: pkg.items, placements: pkg.placements }) : "";
 
     summary.innerHTML = `
       <h2>Sipariş özeti</h2>
@@ -115,18 +115,24 @@ export function initCartPage() {
   /** The own package's products (edited in the builder or on the Products page). */
   function customHtml(pkg) {
     const count = pkg.items.reduce((sum, i) => sum + i.qty, 0);
+    // Grouped by room of the floor plan; products without a room come last.
+    const { rooms, unplaced } = roomSummary(pkg);
+    const groups = [...rooms.map((r) => ({ label: r.label, items: r.items })), ...(unplaced.length ? [{ label: rooms.length ? "Odası seçilmemiş" : "Ürünler", items: unplaced }] : [])];
     return `
       <div class="order-extras">
         <p class="cart-line-kind">Paketinizdeki ürünler (${count})</p>
-        <p class="muted">${escapeHtml(sizeOf(pkg.size).label)} ev · ${escapeHtml(heatingOf(pkg.heating).name)}</p>
-        <ul class="pkg-items">
-          ${pkg.items
-            .map(({ id, qty }) => {
-              const item = findItem(id);
-              return `<li><span class="extra-media">${mediaHtml(item)}</span><a href="/products.html#product-${escapeHtml(id)}">${escapeHtml(item.name)}</a><span class="pkg-qty">${qty}×</span></li>`;
-            })
-            .join("")}
-        </ul>
+        <p class="muted">${escapeHtml(sizeOf(pkg.size).label)} ev${escapeHtml(balconyText(pkg.balconies, ", "))} · ${escapeHtml(heatingOf(pkg.heating).name)}</p>
+        ${groups
+          .map(
+            ({ label, items }) => `
+          <p class="order-room">${escapeHtml(label)}</p>
+          <ul class="pkg-items">
+            ${items
+              .map(({ item, qty }) => `<li><span class="extra-media">${mediaHtml(item)}</span><a href="/products.html#product-${escapeHtml(item.id)}">${escapeHtml(item.name)}</a><span class="pkg-qty">${qty}×</span></li>`)
+              .join("")}
+          </ul>`
+          )
+          .join("")}
         <a class="text-link" href="/packages.html#kendin-kur">Paketimi düzenle</a>
       </div>`;
   }

@@ -855,7 +855,6 @@ body.has-order-bar .toast:not(.is-visible) { transform: translate(-50%, calc(100
   .builder-steps button { justify-content: center; }
 }
 .builder-layout { display: grid; gap: 1.5rem; }
-@media (min-width: 900px) { .builder-layout.has-summary { grid-template-columns: minmax(0, 1fr) 17rem; align-items: start; } }
 .builder-panel > .muted:first-of-type { margin-top: 0; }
 .choice-grid { display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); margin: 1rem 0; }
 .choice-grid-sizes { grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); }
@@ -883,7 +882,6 @@ body.has-order-bar .toast:not(.is-visible) { transform: translate(-50%, calc(100
 .builder-summary .muted { font-size: 0.85rem; }
 .builder-summary .btn { margin-top: 0.5rem; }
 .builder-price { font-size: 1.6rem; font-weight: 750; font-variant-numeric: tabular-nums; }
-@media (min-width: 900px) { .builder-summary { position: sticky; top: 5.5rem; } }
 .builder-facts { display: grid; gap: 0.35rem; margin: 1rem 0; }
 .builder-facts div { display: flex; gap: 0.75rem; }
 .builder-facts dt { min-width: 4.5rem; color: var(--muted); }
@@ -898,10 +896,111 @@ body.has-order-bar .toast:not(.is-visible) { transform: translate(-50%, calc(100
 .planning legend { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.4rem; }
 .check-grid { display: grid; gap: 0.5rem; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); }
 .builder-item-info .tag { justify-self: start; }
-@media (max-width: 899px) {
-  .builder-summary { order: -1; grid-template-columns: 1fr auto; align-items: center; column-gap: 1rem; }
-  .builder-summary .cart-line-kind, .builder-summary > .muted { grid-column: 1; }
-  .builder-summary .builder-price { grid-column: 2; grid-row: 1 / span 2; font-size: 1.3rem; }
-  .builder-summary > .muted:last-of-type { grid-column: 1 / -1; }
-  .builder-summary .btn { grid-column: 1 / -1; }
+
+/* Side column: floor plan (floor-plan.js) + live price. Desktop: sticky column on
+   the right. Phones: pinned under the header while the steps scroll. */
+.builder-side { display: grid; gap: 0.75rem; align-content: start; }
+.builder-plan-wrap { padding: 0.75rem 0.9rem 0.6rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
+.builder-plan-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.builder-plan-head .cart-line-kind { margin: 0; }
+.builder-plan-toggle { display: none; font-size: 0.8rem; }
+.builder-plan { margin: 0.4rem 0 0; }
+.builder-plan figcaption { margin-top: 0.25rem; font-size: 0.8rem; text-align: center; }
+.builder-plan-empty { display: grid; justify-items: center; gap: 0.5rem; padding: 2rem 1rem; border: 1.5px dashed var(--border); border-radius: var(--radius-sm); color: var(--muted); font-size: 0.85rem; text-align: center; }
+.builder-plan-empty .icon { width: 1.75rem; height: 1.75rem; color: var(--accent); }
+.builder-q { margin-top: 1.75rem !important; }
+@media (min-width: 900px) {
+  .builder-layout { grid-template-columns: minmax(0, 1fr) 24rem; align-items: start; }
+  .builder-side { position: sticky; top: calc(var(--header-h) + 1rem); }
 }
+@media (max-width: 899px) {
+  .builder { padding: 1rem; }
+  .builder-layout { gap: 1rem; }
+  .builder-side {
+    order: -1; position: sticky; top: var(--header-h); z-index: 15;
+    margin: 0 -1rem; padding: 0.5rem 1rem; gap: 0.5rem;
+    background: color-mix(in srgb, var(--surface) 94%, transparent); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border); box-shadow: 0 8px 16px -14px rgba(0, 0, 0, 0.35);
+  }
+  .builder-plan-wrap { padding: 0.3rem 0.6rem 0.25rem; }
+  .builder-plan { margin-top: 0.2rem; }
+  .builder-plan-toggle { display: inline; }
+  .builder-plan .floor-plan { max-height: 27vh; }
+  .builder-plan figcaption { display: none; }
+  .builder-side.is-collapsed .builder-plan { display: none; }
+  .builder-summary { grid-template-columns: 1fr auto; align-items: center; column-gap: 1rem; row-gap: 0; padding: 0.4rem 0.75rem; }
+  .builder-summary .cart-line-kind { font-size: 0.7rem; }
+  .builder-summary .cart-line-kind, .builder-summary > .muted:first-of-type { grid-column: 1; }
+  .builder-summary .builder-price { grid-column: 2; grid-row: 1 / span 2; font-size: 1.15rem; }
+  .builder-summary > .muted:last-of-type, .builder-summary .btn { display: none; }
+  .builder-plan-empty { padding: 0.75rem; }
+}
+
+/* The plan itself */
+.floor-plan { display: block; width: 100%; height: auto; margin-inline: auto; overflow: visible; }
+.floor-plan .fp-fill { fill: var(--surface); }
+.floor-plan .fp-bed .fp-fill { fill: var(--accent-soft); }
+.floor-plan .fp-living .fp-fill { fill: color-mix(in srgb, #b3c6ea 30%, var(--surface)); }
+.floor-plan .fp-bath .fp-fill, .floor-plan .fp-kitchen .fp-fill { fill: color-mix(in srgb, #9ed5fd 32%, var(--surface)); }
+.floor-plan .fp-hall .fp-fill { fill: var(--surface-2); }
+.floor-plan .fp-balcony .fp-fill { fill: color-mix(in srgb, #9ed5fd 18%, var(--surface)); }
+.floor-plan .fp-wall { fill: none; stroke: var(--text); stroke-width: 6; stroke-linejoin: miter; }
+.floor-plan .fp-wall-in { fill: none; stroke: var(--text); stroke-width: 3; stroke-linecap: square; }
+.floor-plan .fp-gap { fill: var(--surface); }
+.floor-plan .fp-door { fill: none; stroke: var(--muted); stroke-width: 1; }
+.floor-plan .fp-window { fill: var(--surface); stroke: var(--accent); stroke-width: 1.5; }
+.floor-plan .fp-furn { fill: none; stroke: var(--muted); stroke-width: 1; stroke-linejoin: round; pointer-events: none; }
+.floor-plan .fp-furn .fp-solid { fill: var(--surface); }
+.floor-plan .fp-furn .fp-soft { fill: var(--surface-2); }
+.floor-plan .fp-furn .fp-blanket { fill: color-mix(in srgb, var(--accent) 28%, var(--surface)); }
+.floor-plan .fp-furn .fp-water { fill: color-mix(in srgb, #9ed5fd 55%, var(--surface)); }
+.floor-plan .fp-furn .fp-rug { fill: color-mix(in srgb, var(--accent) 10%, transparent); stroke-dasharray: 3 2; }
+.floor-plan .fp-furn .fp-wood-solid { fill: color-mix(in srgb, #c9a27c 50%, var(--surface)); stroke: color-mix(in srgb, #8a6a4c 70%, var(--muted)); }
+.floor-plan .fp-plant circle { fill: #9cc9a8; stroke: #5d8f6c; stroke-width: 0.8; }
+.floor-plan .fp-texture { pointer-events: none; }
+.floor-plan pattern path { fill: none; stroke: var(--text); stroke-width: 0.6; opacity: 0.12; }
+.floor-plan .fp-shadow { fill: var(--text); opacity: 0.16; filter: blur(5px); }
+.floor-plan .fp-rail { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 4 3; }
+.floor-plan .fp-slide { stroke: var(--accent); stroke-width: 2; }
+.floor-plan .fp-entry { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.floor-plan .fp-entry-label { fill: var(--accent); font-size: 10px; font-weight: 700; }
+.floor-plan .fp-label { fill: var(--text); font-size: 11px; font-weight: 700; text-anchor: middle; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
+.floor-plan .fp-room { transform-box: fill-box; transform-origin: center; animation: fp-in 0.45s ease both; animation-delay: calc(var(--i) * 70ms); }
+.floor-plan > :not(.fp-room) { animation: fp-fade 0.5s ease both; }
+@keyframes fp-in { from { opacity: 0; transform: scale(0.92); } }
+@keyframes fp-fade { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .floor-plan * { animation: none !important; } }
+
+/* Room-by-room plan: clickable rooms, product emblems, room editor */
+.choice-grid-balcony { grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr)); }
+.builder-plan-hint { margin: 0.35rem 0 0; font-size: 0.8rem; text-align: center; }
+.floor-plan .fp-lines, .floor-plan .fp-lines * { pointer-events: none; }
+.floor-plan.is-interactive:not(.is-locked) [data-room] { cursor: pointer; }
+.floor-plan .fp-fill { transition: fill 0.15s ease; }
+.floor-plan.is-interactive:not(.is-locked) .fp-room:hover .fp-fill { fill: color-mix(in srgb, var(--accent) 48%, var(--surface)); stroke: var(--accent); stroke-width: 2.5; }
+.floor-plan .fp-room:focus { outline: none; }
+.floor-plan .fp-room:focus-visible .fp-fill { stroke: var(--accent); stroke-width: 3; }
+.floor-plan .fp-room.is-selected .fp-fill, .floor-plan.is-interactive:not(.is-locked) .fp-room.is-selected:hover .fp-fill { fill: color-mix(in srgb, var(--accent) 60%, var(--surface)); stroke: var(--accent); stroke-width: 3.5; }
+.floor-plan .fp-room.has-items .fp-furn { display: none; }
+.floor-plan .fp-emblem circle { fill: var(--accent); }
+.floor-plan .fp-emblem-icon { fill: none; stroke: var(--accent-contrast); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.floor-plan .fp-emblem .fp-badge { fill: var(--text); stroke: var(--surface); stroke-width: 1.2; }
+.floor-plan .fp-badge-text { fill: var(--surface); font-size: 7px; font-weight: 800; text-anchor: middle; pointer-events: none; }
+.floor-plan .fp-more circle { fill: var(--surface-2); stroke: var(--accent); }
+.floor-plan .fp-more text { fill: var(--accent); font-size: 8px; font-weight: 800; text-anchor: middle; }
+.floor-plan.is-interactive:not(.is-locked) .fp-emblem { cursor: pointer; }
+.room-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.5rem 0 0.25rem; }
+.room-chips .chip { padding-block: 0.3rem; font-size: 0.85rem; }
+.room-editor h3 { margin-top: 0.5rem; }
+.room-group { margin-top: 0.6rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
+.room-group summary { padding: 0.65rem 0.9rem; font-weight: 650; cursor: pointer; }
+.room-group[open] summary { border-bottom: 1px solid var(--border); }
+.room-group .builder-items { padding: 0.6rem; }
+.room-emblem { display: inline-grid; place-items: center; width: 1.15rem; height: 1.15rem; margin-right: 0.35rem; border-radius: 999px; background: var(--accent); vertical-align: -0.2em; }
+.room-emblem svg { width: 0.7rem; height: 0.7rem; fill: none; stroke: var(--accent-contrast); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.builder-item-rooms { display: flex; align-items: center; gap: 0.3rem; font-size: 0.78rem; color: var(--accent); font-weight: 600; }
+.builder-item-rooms .icon { width: 0.85rem; height: 0.85rem; }
+.order-room { margin: 0.75rem 0 0; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.order-room + .pkg-items { margin-top: 0.35rem; }
+@media (max-width: 899px) { .builder-plan-hint { font-size: 0.72rem; margin-top: 0.15rem; } }
+@media (min-width: 1150px) { .builder-layout { grid-template-columns: minmax(0, 1fr) 28rem; } }

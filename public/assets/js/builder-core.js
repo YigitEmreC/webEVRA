@@ -2,14 +2,20 @@
 // Products page, Siparişim) and the server (functions/api/order.js), so the price
 // the customer sees is the price in the sales e-mail.
 //
-// A custom package is stored as { size: "3+1", heating: "kombi-petek",
-// items: [{ id: "hub", qty: 1 }, ...] }. Data and rules: public/data/builder.js.
+// A custom package is stored as
+//   { size: "3+1", balconies: 2, heating: "kombi-petek",
+//     items: [{ id: "hub", qty: 1 }, ...],
+//     placements: { living: { "wall-panel": 1 }, bed1: { "radiator-valve": 1 } } }
+// balconies: 0–4, or null when not asked yet. placements say which room of the
+// floor plan (floor-plan.js) each product goes in; products not placed in any
+// room are still in the package. Data and rules: public/data/builder.js.
 
-import { CUSTOM_ID, CUSTOM_NAME, homeSizes, systemItems, heatingSystems } from "../../data/builder.js";
+import { CUSTOM_ID, CUSTOM_NAME, MAX_BALCONIES, homeSizes, systemItems, heatingSystems } from "../../data/builder.js";
+import { planRooms } from "./floor-plan.js";
 import { findItem, toCents } from "./pricing.js";
 import { settings } from "../../data/settings.js";
 
-export { CUSTOM_ID, CUSTOM_NAME };
+export { CUSTOM_ID, CUSTOM_NAME, MAX_BALCONIES };
 export const CUSTOM_MAX_QTY = 20;
 
 export const sizeOf = (id) => homeSizes.find((s) => s.id === id) || null;
@@ -20,7 +26,7 @@ export function requiredItems(size, heating) {
   const rooms = sizeOf(size)?.rooms || 1;
   const list = [...systemItems.map((i) => ({ ...i, group: "system" }))];
   for (const i of heatingOf(heating)?.items || []) {
-    list.push({ id: i.id, qty: i.qty === "rooms" ? rooms : i.qty, min: i.min || 0, group: "heating" });
+    list.push({ id: i.id, qty: i.qty === "rooms" ? rooms : i.qty, min: i.min || 0, room: i.room, group: "heating" });
   }
   return list;
 }
@@ -56,7 +62,92 @@ export function cleanCustom(raw) {
   for (const r of requiredItems(size.id, heating.id)) {
     if ((qty.get(r.id) || 0) < r.min) qty.set(r.id, r.min);
   }
-  return { size: size.id, heating: heating.id, items: [...qty].map(([id, q]) => ({ id, qty: q })) };
+  const balconies = cleanBalconies(raw);
+  const items = [...qty].map(([id, q]) => ({ id, qty: q }));
+  return { size: size.id, balconies, heating: heating.id, items, placements: normalizePlacements(raw.placements, items, roomsOf(size.id, balconies)) };
+}
+
+/** 0–4 balconies, null when not answered (older saves had balcony: true/false). */
+export function cleanBalconies(raw) {
+  if (Number.isInteger(raw?.balconies)) return Math.max(0, Math.min(raw.balconies, MAX_BALCONIES));
+  if (typeof raw?.balcony === "boolean") return raw.balcony ? 1 : 0;
+  return null;
+}
+
+/** The rooms of the plan for a home size and balcony count. */
+export function roomsOf(size, balconies) {
+  const s = sizeOf(size);
+  return s && !s.large ? planRooms(s.bedrooms, balconies || 0) : [];
+}
+
+/**
+ * Keeps only real rooms and products of the package, and never places more of a
+ * product than the package has (rooms earlier in the plan keep theirs first).
+ */
+export function normalizePlacements(placements, items, rooms) {
+  const left = new Map(items.map((i) => [i.id, i.qty]));
+  const out = {};
+  if (!placements || typeof placements !== "object") return out;
+  for (const { id: room } of rooms) {
+    const entries = placements[room];
+    if (!entries || typeof entries !== "object") continue;
+    for (const [id, raw] of Object.entries(entries)) {
+      const n = Math.min(Math.floor(Number(raw)) || 0, left.get(id) || 0);
+      if (n <= 0) continue;
+      (out[room] ||= {})[id] = n;
+      left.set(id, left.get(id) - n);
+    }
+  }
+  return out;
+}
+
+/** How many of a product are placed in rooms. */
+export function placedQty(placements, id) {
+  return Object.values(placements || {}).reduce((sum, room) => sum + (room[id] || 0), 0);
+}
+
+/**
+ * Puts required products in their usual rooms (public/data/builder.js → room):
+ * the hub in the hallway, the wall panel in the living room, one radiator valve
+ * per room … Only products in `ids` (default: all required ones) and only the
+ * quantity not placed yet. Returns new placements.
+ */
+export function autoPlace(custom, ids = null) {
+  const rooms = roomsOf(custom.size, custom.balconies);
+  const exists = new Set(rooms.map((r) => r.id));
+  const placements = JSON.parse(JSON.stringify(custom.placements || {}));
+  const qtyOf = (id) => custom.items.find((i) => i.id === id)?.qty || 0;
+  for (const req of requiredItems(custom.size, custom.heating)) {
+    if (!req.room || (ids && !ids.includes(req.id))) continue;
+    let left = qtyOf(req.id) - placedQty(placements, req.id);
+    const targets = req.room === "rooms" ? ["living", ...rooms.filter((r) => r.kind === "bed").map((r) => r.id)] : [req.room];
+    for (const room of targets) {
+      if (left <= 0) break;
+      if (!exists.has(room)) continue;
+      const add = req.room === "rooms" ? (placements[room]?.[req.id] ? 0 : 1) : left;
+      if (!add) continue;
+      (placements[room] ||= {})[req.id] = (placements[room]?.[req.id] || 0) + add;
+      left -= add;
+    }
+  }
+  return normalizePlacements(placements, custom.items, rooms);
+}
+
+/** Rooms with their products, for the order summary and the sales e-mail. */
+export function roomSummary(custom) {
+  const rooms = roomsOf(custom.size, custom.balconies);
+  const list = rooms
+    .map((room) => ({
+      ...room,
+      items: Object.entries(custom.placements?.[room.id] || {})
+        .map(([id, qty]) => ({ item: findItem(id), qty }))
+        .filter((x) => x.item && x.qty > 0),
+    }))
+    .filter((room) => room.items.length);
+  const unplaced = custom.items
+    .map(({ id, qty }) => ({ item: findItem(id), qty: qty - placedQty(custom.placements, id) }))
+    .filter((x) => x.item && x.qty > 0);
+  return { rooms: list, unplaced };
 }
 
 /** Price of a custom package (settings.js → pricing), with the steps for the sales e-mail. */
@@ -93,12 +184,22 @@ export function customPackage(custom) {
     kind: "package",
     custom: true,
     name: CUSTOM_NAME,
-    context: `${size.label} ev · ${heating.name}`,
+    context: `${size.label} ev${balconyText(clean.balconies, " · ")} · ${heating.name}`,
     price: customPrice(clean.items).total,
     items: clean.items,
     size: clean.size,
+    balconies: clean.balconies,
     heating: clean.heating,
+    placements: clean.placements,
   };
+}
+
+/** "balkonsuz" / "balkonlu" / "2 balkonlu" (with a prefix), or "" when not asked. */
+export function balconyText(balconies, prefix = "") {
+  if (balconies === null || balconies === undefined) return "";
+  if (balconies === true || balconies === 1) return `${prefix}balkonlu`;
+  if (balconies === false || balconies === 0) return `${prefix}balkonsuz`;
+  return `${prefix}${balconies} balkonlu`;
 }
 
 /** The package in an order (a catalog package or the customer's own one), or null. */
