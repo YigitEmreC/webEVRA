@@ -38,7 +38,7 @@ export function initProducts() {
   const banner = document.getElementById("product-mode");
   const byId = new Map(products.map((p) => [p.id, p]));
   const haystack = new Map(
-    products.map((p) => [p.id, fold(`${p.name} ${p.category} ${p.description} ${(p.features || []).join(" ")}`)])
+    products.map((p) => [p.id, fold(`${p.name} ${p.category} ${p.description} ${(p.features || []).join(" ")} ${(p.uses || []).join(" ")}`)])
   );
   const categories = [...new Set(products.map((p) => p.category))];
 
@@ -258,23 +258,13 @@ export function initProducts() {
   if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
 }
 
-const CONNECTION = /zigbee|wi-?fi|matter|thread/i;
 
 /** A full-width panel: blurred product photo behind, the original photo in a
-    small box, and the product's specs next to it. */
+    small box, then one short line, the features and "Neler yapabilir?" as
+    bullets (no brand or model: those stay in catalog.js for us). */
 function card(p) {
   const id = escapeHtml(p.id);
-  const features = p.features || [];
-  const connection = features.filter((f) => CONNECTION.test(f));
-  const other = features.filter((f) => !CONNECTION.test(f));
-  const [type, model] = p.name.includes(" – ") ? p.name.split(" – ") : [p.name, ""];
-  const specs = [
-    ["Ürün", type],
-    ["Model", model],
-    ["Kategori", p.category],
-    ["Bağlantı", connection.join(" · ")],
-    ["Özellikler", other.join(" · ")],
-  ].filter(([, value]) => value);
+  const bullets = (list) => list.map((x) => `<li>${icon("check")}<span>${escapeHtml(x)}</span></li>`).join("");
   const bg = p.image ? ` style="--panel-bg: url('${escapeHtml(p.image)}')"` : "";
 
   return `
@@ -284,10 +274,11 @@ function card(p) {
       <div class="panel-body">
         <p class="card-kicker">${escapeHtml(p.category)} <span class="included-tag" data-included hidden>Paketinizde var</span></p>
         <h3 class="panel-title">${escapeHtml(p.name)}</h3>
-        <dl class="panel-specs">
-          ${specs.map(([label, value]) => `<div><dt>${label}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}
-        </dl>
         <p class="panel-desc">${escapeHtml(p.description)}</p>
+        <div class="panel-lists">
+          ${p.features?.length ? `<div><p class="list-title">Özellikler</p><ul class="panel-bullets">${bullets(p.features)}</ul></div>` : ""}
+          ${p.uses?.length ? `<div><p class="list-title">Neler yapabilir?</p><ul class="panel-bullets panel-uses">${bullets(p.uses)}</ul></div>` : ""}
+        </div>
         <div class="card-footer" hidden></div>
       </div>
     </article>`;

@@ -41,7 +41,7 @@ export function initCartPage() {
     pkgInput.value = pkg.id;
     // Sent as "id:qty,id:qty"
     extrasInput.value = extras.map(({ item, qty }) => `${item.id}:${qty}`).join(",");
-    customInput.value = pkg.custom ? JSON.stringify({ size: pkg.size, balconies: pkg.balconies, heating: pkg.heating, items: pkg.items, placements: pkg.placements }) : "";
+    customInput.value = pkg.custom ? JSON.stringify({ size: pkg.size, balconies: pkg.balconies, heating: pkg.heating, items: pkg.items, placements: pkg.placements, answers: pkg.answers }) : "";
 
     summary.innerHTML = `
       <h2>Sipariş özeti</h2>

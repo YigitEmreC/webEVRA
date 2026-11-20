@@ -1020,3 +1020,61 @@ body.has-order-bar .toast:not(.is-visible) { transform: translate(-50%, calc(100
 .room-editor.in-side .room-chips .chip { font-size: 0.78rem; padding: 0.2rem 0.55rem; }
 .room-editor.in-side .room-group .builder-items { padding: 0.45rem; }
 .room-editor.in-side .builder-nav { margin-top: 0.75rem; }
+
+/* Home hero: short benefits on one line */
+.hero-points-inline { list-style: none; padding: 0; margin: 1.75rem 0 0; display: flex; flex-wrap: wrap; gap: 0.5rem 1.4rem; font-size: 0.95rem; font-weight: 600; }
+.hero-points-inline li { display: inline-flex; align-items: center; gap: 0.4rem; }
+.hero-points-inline .icon { width: 1.1rem; height: 1.1rem; color: var(--accent); stroke-width: 2.4; }
+.hero-has-video .hero-points-inline { color: rgb(255 255 255 / 0.9); }
+.hero-has-video .hero-points-inline .icon { color: var(--highlight); }
+
+/* ===== Builder v3: short choices, questions, "Ürünleriniz ne yapıyor?" ===== */
+.choice-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0; }
+.choice-compact { min-width: 4.25rem; padding: 0.7rem 1rem; text-align: center; justify-items: center; }
+.choice-compact strong { font-size: 1.05rem; }
+.choice-grid-heat { grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); }
+.tick-list { list-style: none; margin: 0.5rem 0 0.75rem; padding: 0; display: grid; gap: 0.35rem; }
+.tick-list li { display: flex; gap: 0.5rem; align-items: flex-start; }
+.tick-list .icon { flex: none; width: 1.1rem; height: 1.1rem; margin-top: 0.15rem; color: var(--accent); }
+.tick-list-small { font-size: 0.88rem; color: var(--muted); }
+
+.question { display: grid; gap: 0.5rem; }
+.question h3 { margin: 0; font-size: 1.35rem; }
+.question .muted { margin: 0; }
+.question-progress { height: 6px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.question-progress span { display: block; height: 100%; background: var(--accent); border-radius: inherit; transition: width 0.3s ease; }
+.question-count { margin: 0.25rem 0 0; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--accent); }
+.question-preview { list-style: none; margin: 0.4rem 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.question-preview li { display: inline-flex; align-items: center; padding: 0.3rem 0.65rem 0.3rem 0.35rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); font-size: 0.85rem; }
+.question-answers { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.5rem; }
+.question-answers .btn { min-width: 8rem; }
+.question-answers .btn[aria-pressed="true"] { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
+.question .builder-nav { margin-top: 0.75rem; }
+
+.answer-list { list-style: none; margin: 0.75rem 0; padding: 0; display: grid; gap: 0.5rem; }
+.answer-list li { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.6rem 0.8rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); font-size: 0.92rem; }
+.answer-toggle { flex: none; display: inline-flex; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+.answer-toggle button { padding: 0.35rem 0.8rem; border: 0; background: none; color: var(--text); font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+.answer-toggle button[aria-pressed="true"] { background: var(--accent); color: var(--accent-contrast); }
+
+.does { padding: 0.75rem 0.9rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
+.does .cart-line-kind { margin: 0 0 0.5rem; }
+.does-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.55rem; }
+.does-list li { display: flex; gap: 0.5rem; align-items: flex-start; font-size: 0.86rem; line-height: 1.35; }
+.does-text { display: grid; gap: 0.05rem; min-width: 0; }
+.does-name { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3rem; }
+.does-list .room-emblem { flex: none; margin: 0.05rem 0 0; }
+.does-list .muted { font-size: 0.8rem; }
+.does-qty { color: var(--accent); font-weight: 700; }
+.builder-panel .does { margin: 1rem 0; }
+@media (min-width: 900px) {
+  .builder-side { max-height: calc(100vh - var(--header-h) - 2rem); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+}
+
+/* Products page: features and "Neler yapabilir?" as two short bullet lists */
+.panel-lists { display: grid; gap: 0.25rem 2rem; margin: 0 0 1rem; }
+@media (min-width: 700px) { .panel-lists { grid-template-columns: 1fr 1fr; } }
+.panel-lists .list-title { margin: 0.25rem 0 0.4rem; }
+.panel-bullets { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.3rem; font-size: 0.92rem; }
+.panel-bullets li { display: flex; gap: 0.45rem; align-items: flex-start; }
+.panel-bullets .icon { flex: none; width: 1rem; height: 1rem; margin-top: 0.2rem; color: var(--accent); }

@@ -17,7 +17,7 @@ import { emailConfigured, inbox, sendEmail, fieldsEmail, textToHtml } from "../.
 import { orderAutoReply } from "../../lib/email-templates.js";
 import { findItem, formatMoney, toCents, depositCents } from "../../public/assets/js/pricing.js";
 import { newOrderRef } from "../../lib/order-ref.js";
-import { CUSTOM_ID, customPackage, customPrice, sizeOf, heatingOf, balconyText, roomSummary } from "../../public/assets/js/builder-core.js";
+import { CUSTOM_ID, customPackage, customPrice, sizeOf, heatingOf, balconyText, roomSummary, questionOf } from "../../public/assets/js/builder-core.js";
 
 const MAX_EXTRAS = 50;
 const MAX_QTY = 20;
@@ -97,6 +97,7 @@ export async function onRequestPost({ request, env }) {
         ["Ev / ısıtma", `${sizeOf(pkg.size).label}${balconyText(pkg.balconies, ", ")} · ${heatingOf(pkg.heating).name}`],
         ["Paketteki ürünler", extrasText],
         ["Oda yerleşimi (müşterinin krokisi)", roomsText(pkg)],
+        ["Soruların cevapları", answersText(pkg)],
         ["Fiyat hesabı (iç bilgi)", customPrice(pkg.items).steps.map(([label, cents]) => `${label}: ${formatMoney(cents)}`).join("\n")],
       ]
     : [["Ekstra ürünler (fiyat görüşülecek)", extrasText]];
@@ -144,5 +145,11 @@ function roomsText(pkg) {
   const list = (items) => items.map(({ item, qty }) => `${qty} × ${item.name}`).join(", ");
   const lines = rooms.map((r) => `${r.label}: ${list(r.items)}`);
   if (unplaced.length) lines.push(`Odası seçilmemiş: ${list(unplaced)}`);
+  return lines.join("\n") || "—";
+}
+
+/** "Evet: Kamera ve hırsız alarmı…" — what the customer answered in the builder. */
+function answersText(pkg) {
+  const lines = Object.entries(pkg.answers || {}).map(([id, yes]) => `${yes ? "Evet" : "Hayır"}: ${questionOf(id)?.title || id}`);
   return lines.join("\n") || "—";
 }

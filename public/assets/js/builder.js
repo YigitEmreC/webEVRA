@@ -1,15 +1,14 @@
 // "Kendi paketini oluştur" on the Packages page (#builder), step by step:
-//   1 Ev büyüklüğü + balkon sayısı → 2 Isıtma sistemi → 3 Sistem (required
-//   products, filled in automatically) → 4 Ürünler → 5 Özet ve fiyat.
-// From step 1 on, a bird's-eye floor plan of the home (floor-plan.js) stays
-// beside the steps (on phones: pinned at the top). Once the heating is chosen,
-// every room of the plan can be opened ("oda düzenleyici") to put products in
-// it; they show as small emblems on the room. On computers the room editor
-// opens right under the plan (the page doesn't move); on phones it takes the
-// place of the step, below the pinned plan. Required products are placed in
-// their usual rooms automatically (data/builder.js → room).
+//   1 Ev (oda + balkon) → 2 Isıtma → 3 Sorular (one yes/no question at a time;
+//   every "Evet" adds the suggested products, sized to the home) → 4 Krokiniz
+//   (the products sit in the rooms of the floor plan; tap a room to change it)
+//   → 5 Özet ve fiyat.
+// From step 1 on, a bird's-eye floor plan (floor-plan.js) stays beside the steps
+// (on phones: pinned at the top), with "Ürünleriniz ne yapıyor?" under it. On
+// computers the room editor opens under the plan (the page doesn't move); on
+// phones it takes the place of the step.
+// Rules and data: builder-core.js and data/builder.js. Price: customPrice.
 // "5+1 ve üzeri" doesn't build a package: it opens the planning form (#planning).
-// The price is calculated live (builder-core.js → customPrice, settings.js → pricing).
 // The draft lives in sessionStorage ("builder.v1"): it survives going to another
 // page, coming back and reloading, but a new visit starts from scratch. Once
 // chosen it becomes the order's own package (cart-store.js → setCustom); that one
@@ -17,7 +16,7 @@
 // ("Paketimi düzenle" links use ?duzenle=1, or the "saved package" notice).
 
 import { products } from "../../data/catalog.js";
-import { homeSizes, heatingSystems } from "../../data/builder.js";
+import { homeSizes, heatingKinds, questions, roomProducts } from "../../data/builder.js";
 import { findItem, formatMoney, toCents, depositCents } from "./pricing.js";
 import {
   CUSTOM_ID,
@@ -32,22 +31,25 @@ import {
   customPackage,
   balconyText,
   cleanBalconies,
+  cleanAnswers,
   roomsOf,
   normalizePlacements,
   placedQty,
   autoPlace,
   roomSummary,
+  applyAnswer,
+  buildFromAnswers,
 } from "./builder-core.js";
 import { floorPlanSvg, emblemsSvg, categoryIcon } from "./floor-plan.js";
 import { getOrder, setCustom } from "./cart-store.js";
 import { settings } from "../../data/settings.js";
-import { escapeHtml, icon, mediaHtml } from "./ui.js";
+import { escapeHtml, icon, mediaHtml, toast } from "./ui.js";
 
 const KEY = "builder.v1";
-const STEPS = ["Ev büyüklüğü", "Isıtma", "Sistem", "Ürünler", "Özet"];
+const STEPS = ["Ev", "Isıtma", "Sorular", "Krokiniz", "Özet"];
 
-const FRESH = () => ({ step: 0, room: null, size: null, balconies: null, heating: null, items: [], placements: {}, chosen: false });
-const fromOrder = (custom) => ({ ...FRESH(), step: 4, ...custom, chosen: true });
+const FRESH = () => ({ step: 0, q: 0, room: null, size: null, balconies: null, heating: null, items: [], placements: {}, answers: {}, chosen: false });
+const fromOrder = (custom) => ({ ...FRESH(), step: 4, q: questions.length, ...custom, answers: cleanAnswers(custom.answers), chosen: true });
 
 function loadDraft() {
   const order = getOrder();
@@ -64,14 +66,15 @@ function loadDraft() {
       // Chosen in this visit and maybe changed on the Products page since: the order is newer.
       if (saved.chosen && order.custom) return fromOrder(order.custom);
       return {
-        chosen: false,
+        ...FRESH(),
         step: Math.min(Math.max(Number(saved.step) || 0, 0), 4),
-        room: null,
+        q: Math.min(Math.max(Number(saved.q) || 0, 0), questions.length),
         size: sizeOf(saved.size)?.id || null,
         balconies: cleanBalconies(saved),
         heating: heatingOf(saved.heating)?.id || null,
         items: Array.isArray(saved.items) ? saved.items.filter((i) => findItem(i?.id) && i.qty > 0) : [],
         placements: saved.placements && typeof saved.placements === "object" ? saved.placements : {},
+        answers: cleanAnswers(saved.answers),
       };
     }
   } catch {
@@ -80,8 +83,11 @@ function loadDraft() {
   return FRESH();
 }
 
-/** Small inline SVG of a product's category, like the emblems on the plan. */
+/** Small round icon of a product's category, like the emblems on the plan. */
 const emblemIcon = (p) => `<span class="room-emblem" aria-hidden="true"><svg viewBox="0 0 24 24">${categoryIcon(p.category)}</svg></span>`;
+
+/** The heating kind (Kombi, Merkezi …) a heating system belongs to. */
+const kindOf = (heating) => heatingKinds.find((k) => k.system === heating || Object.values(k.floor || {}).includes(heating)) || null;
 
 export function initBuilder() {
   const root = document.getElementById("builder");
@@ -103,7 +109,7 @@ export function initBuilder() {
     }
   };
   const qtyOf = (id) => state.items.find((i) => i.id === id)?.qty || 0;
-  const custom = () => ({ size: state.size, balconies: state.balconies, heating: state.heating, items: state.items, placements: state.placements });
+  const custom = () => ({ size: state.size, balconies: state.balconies, heating: state.heating, items: state.items, placements: state.placements, answers: state.answers });
   const rooms = () => roomsOf(state.size, state.balconies);
   const roomQty = (room, id) => state.placements[room]?.[id] || 0;
   const normalize = () => (state.placements = normalizePlacements(state.placements, state.items, rooms()));
@@ -126,6 +132,7 @@ export function initBuilder() {
           <p class="builder-plan-hint muted" data-plan-hint></p>
         </div>
         <div data-room-side></div>
+        <div data-does-side></div>
         <div data-summary></div>
       </aside>
     </div>`;
@@ -136,6 +143,7 @@ export function initBuilder() {
   const hintEl = root.querySelector("[data-plan-hint]");
   const summaryEl = root.querySelector("[data-summary]");
   const roomSideEl = root.querySelector("[data-room-side]");
+  const doesSideEl = root.querySelector("[data-does-side]");
   const phone = window.matchMedia("(max-width: 899px)");
   let planKey = null;
 
@@ -169,38 +177,36 @@ export function initBuilder() {
     normalize();
   }
 
-  const perRoomIds = () => (heatingOf(state.heating)?.items || []).filter((i) => i.qty === "rooms").map((i) => i.id);
+  /** The home changed after the heating was chosen: suggest again for the new home. */
+  function rebuild() {
+    if (!state.heating || !state.size || sizeOf(state.size).large || state.balconies === null) return;
+    const hadProducts = state.items.length > 0;
+    Object.assign(state, buildFromAnswers(state.size, state.balconies, state.heating, state.answers));
+    if (hadProducts) toast("Öneriler yeni evinize göre güncellendi");
+  }
 
   function chooseSize(id) {
-    const before = state.size;
+    const changed = state.size !== id;
     state.size = id;
     if (sizeOf(id).large) {
       state.room = null;
       return;
     }
-    // Per-room products (valves, actuators) follow the new room count.
-    if (before && state.heating && before !== id) {
-      const oldRooms = sizeOf(before)?.rooms;
-      for (const pid of perRoomIds()) {
-        if (!sizeOf(before)?.large && qtyOf(pid) === oldRooms) setQty(pid, sizeOf(id).rooms);
-      }
-    }
+    if (changed) rebuild();
     normalize();
-    if (state.heating) state.placements = autoPlace(custom(), perRoomIds());
     if (state.room && !rooms().some((r) => r.id === state.room)) state.room = null;
   }
 
   function chooseBalconies(n) {
+    const changed = state.balconies !== n;
     state.balconies = n;
+    if (changed) rebuild();
     normalize();
     if (state.room && !rooms().some((r) => r.id === state.room)) state.room = null;
   }
 
   function chooseHeating(id) {
-    if (state.heating === id) {
-      state.step = 2;
-      return;
-    }
+    if (state.heating === id) return;
     // Take out the previous heating system's products, put in the new one's.
     const system = new Set(requiredItems(state.size, null).map((i) => i.id));
     const oldIds = new Set((heatingOf(state.heating)?.items || []).map((i) => i.id).filter((x) => !system.has(x)));
@@ -212,7 +218,14 @@ export function initBuilder() {
     }
     normalize();
     state.placements = autoPlace(custom(), start.map((s) => s.id));
-    state.step = 2;
+  }
+
+  function answer(questionId, yes) {
+    Object.assign(state, applyAnswer(custom(), questionId, yes));
+    const index = questions.findIndex((q) => q.id === questionId);
+    const asked = state.q === index; // answered the question on screen (not in the overview)
+    if (asked) state.q = index + 1;
+    if (asked && state.q >= questions.length) state.step = 3; // last question → the plan
   }
 
   // ── Drawing ───────────────────────────────────────────────────────────────
@@ -234,8 +247,9 @@ export function initBuilder() {
             </button>
           </li>`
         ).join("")}`;
-    panelEl.innerHTML = editorInPanel ? roomEditor() : [stepSize, stepHeating, stepSystem, stepProducts, stepSummary][state.step](ownPackage);
+    panelEl.innerHTML = editorInPanel ? roomEditor() : [stepHome, stepHeating, stepQuestions, stepPlan, stepSummary][state.step](ownPackage);
     roomSideEl.innerHTML = editorInSide ? roomEditor(true) : "";
+    doesSideEl.innerHTML = !phone.matches && !editorInSide && state.step >= 2 && !large ? doesHtml() : "";
     sideEl.classList.toggle("is-editing", editorInSide);
     sideEl.hidden = Boolean(large);
     summaryEl.innerHTML = showSummary && !editorInSide ? summaryHtml() : "";
@@ -277,12 +291,12 @@ export function initBuilder() {
     svg.classList.toggle("is-locked", !canEditRooms());
     hintEl.textContent =
       state.balconies === null
-        ? `${size.label} · balkon sorusunu yanıtlayın`
+        ? `${size.label} · balkon sayısını seçin`
         : !canEditRooms()
-          ? `${size.label}${balconyText(state.balconies, " · ")} · ısıtmayı seçince odalara ürün ekleyebilirsiniz`
+          ? `${size.label}${balconyText(state.balconies, " · ")}`
           : state.room
-            ? `${rooms().find((r) => r.id === state.room)?.label || ""} düzenleniyor · başka bir odaya dokunabilirsiniz`
-            : "Bir odaya dokunun, o odaya ürün ekleyin";
+            ? `${rooms().find((r) => r.id === state.room)?.label || ""} düzenleniyor`
+            : "Bir odaya dokunun, ürün ekleyin ya da çıkarın";
   }
 
   function navHtml({ back = true, next = null, nextLabel = "Devam et" } = {}) {
@@ -312,41 +326,28 @@ export function initBuilder() {
     const pkg = customPackage(order.custom);
     if (!pkg) return "";
     return `
-      <div class="notice-inline saved-pkg">${icon("layers")}<span>Daha önce oluşturduğunuz bir paket kayıtlı: <strong>${escapeHtml(pkg.context)}</strong>, ${formatMoney(toCents(pkg.price))}.
-        <button type="button" class="link-button" data-load-saved>Kayıtlı paketimi düzenle</button></span></div>`;
+      <div class="notice-inline saved-pkg">${icon("layers")}<span>Kayıtlı paketiniz var: <strong>${escapeHtml(pkg.context)}</strong>, ${formatMoney(toCents(pkg.price))}.
+        <button type="button" class="link-button" data-load-saved>Onu düzenle</button></span></div>`;
   }
 
-  function stepSize() {
+  // ── Steps ─────────────────────────────────────────────────────────────────
+  function stepHome() {
     const large = state.size && sizeOf(state.size).large;
-    const balconyOptions = Array.from({ length: MAX_BALCONIES + 1 }, (_, n) => n);
     return `
       ${savedNotice()}
       <h3>Eviniz kaç oda?</h3>
-      <p class="muted">Oda sayısına göre krokinizi çiziyor ve ısıtma ürünlerinin adedini hazırlıyoruz.</p>
-      <div class="choice-grid choice-grid-sizes">
+      <div class="choice-row">
         ${homeSizes
-          .map(
-            (s) => `
-          <button type="button" class="choice" data-size="${escapeHtml(s.id)}" aria-pressed="${state.size === s.id}">
-            <strong>${escapeHtml(s.label)}</strong>
-            <span class="muted">${s.large ? "Birlikte planlayalım" : `${s.rooms} oda (salon dahil)`}</span>
-          </button>`
-          )
+          .map((s) => `<button type="button" class="choice choice-compact" data-size="${escapeHtml(s.id)}" aria-pressed="${state.size === s.id}"><strong>${escapeHtml(s.label)}</strong></button>`)
           .join("")}
       </div>
       ${
         state.size && !large
           ? `
-        <h3 class="builder-q">Balkonunuz var mı? Varsa kaç tane?</h3>
-        <div class="choice-grid choice-grid-balcony">
-          ${balconyOptions
-            .map(
-              (n) => `
-            <button type="button" class="choice" data-balconies="${n}" aria-pressed="${state.balconies === n}">
-              <strong>${n === 0 ? "Yok" : `${n} balkon`}</strong>
-              <span class="muted">${n === 0 ? "Balkonsuz kroki" : n === 1 ? "Krokiye eklenir" : "Krokinin altına eklenir"}</span>
-            </button>`
-            )
+        <h3 class="builder-q">Kaç balkonunuz var?</h3>
+        <div class="choice-row">
+          ${Array.from({ length: MAX_BALCONIES + 1 }, (_, n) => n)
+            .map((n) => `<button type="button" class="choice choice-compact" data-balconies="${n}" aria-pressed="${state.balconies === n}"><strong>${n === 0 ? "Yok" : n}</strong></button>`)
             .join("")}
         </div>
         ${navHtml({ back: false, next: state.balconies === null ? null : 1 })}`
@@ -354,138 +355,101 @@ export function initBuilder() {
       }
       ${
         large
-          ? `<div class="notice-inline">${icon("layers")}<span><strong>Büyük evler için birlikte planlama yapıyoruz.</strong> 5+1 ve daha büyük evlerde ihtiyaçlar çok farklı olduğu için hazır fiyat vermiyoruz. Aşağıdaki planlama formunu doldurun, sizi arayıp evinize özel bir plan ve teklif hazırlayalım.</span></div>`
+          ? `<div class="notice-inline">${icon("layers")}<span><strong>Büyük evleri birlikte planlıyoruz.</strong> Aşağıdaki formu doldurun, sizi arayalım.</span></div>`
           : ""
       }`;
   }
 
   function stepHeating() {
+    const kind = kindOf(state.heating);
     return `
-      <h3>Isıtma sisteminiz nedir?</h3>
-      <p class="muted">Seçiminize göre gerekli ısıtma ürünleri paketinize ve krokideki odalara otomatik eklenir. Bu adım zorunludur.</p>
-      <div class="choice-grid">
-        ${heatingSystems
+      <h3>Eviniz nasıl ısınıyor?</h3>
+      <div class="choice-grid choice-grid-heat">
+        ${heatingKinds
           .map(
-            (h) => `
-          <button type="button" class="choice choice-wide" data-heating="${escapeHtml(h.id)}" aria-pressed="${state.heating === h.id}">
-            <strong>${escapeHtml(h.name)}</strong>
-            <span class="muted">${escapeHtml(h.text)}</span>
+            (k) => `
+          <button type="button" class="choice" data-kind="${escapeHtml(k.id)}" aria-pressed="${kind?.id === k.id}">
+            <strong>${escapeHtml(k.name)}</strong>
+            <span class="muted">${escapeHtml(k.text)}</span>
           </button>`
           )
           .join("")}
       </div>
+      ${
+        kind?.floor
+          ? `
+        <h3 class="builder-q">Petek mi, yerden ısıtma mı?</h3>
+        <div class="choice-row">
+          <button type="button" class="choice choice-compact" data-heating="${kind.floor.petek}" aria-pressed="${state.heating === kind.floor.petek}"><strong>Petek</strong></button>
+          <button type="button" class="choice choice-compact" data-heating="${kind.floor.yerden}" aria-pressed="${state.heating === kind.floor.yerden}"><strong>Yerden ısıtma</strong></button>
+        </div>`
+          : ""
+      }
       ${navHtml({ next: state.heating ? 2 : null })}`;
   }
 
-  function stepSystem() {
-    const required = requiredItems(state.size, state.heating);
-    const system = required.filter((r) => r.group === "system");
-    const heating = required.filter((r) => r.group === "heating");
-    return `
-      <h3>Sistem ve ısıtma</h3>
-      <p class="muted">Sistemin çalışması için gereken ürünleri ekledik ve krokide odalarına yerleştirdik. Zorunlu ürünler en az bir adet kalır; adetleri değiştirebilir, krokide bir odaya dokunarak yerlerini değiştirebilirsiniz.</p>
-      <h4 class="list-title">Sistem</h4>
-      <ul class="builder-items">${system.map((r) => rowHtml(findItem(r.id), r.min)).join("")}</ul>
-      <h4 class="list-title">Isıtma · ${escapeHtml(heatingOf(state.heating).name)}</h4>
-      <ul class="builder-items">${heating.map((r) => rowHtml(findItem(r.id), r.min, r.min ? "" : "Önerilen")).join("")}</ul>
-      ${navHtml({ next: 3 })}`;
+  /** Product names a question would add, with the category icons. */
+  function questionPreview(q) {
+    const seen = new Set();
+    return q.items
+      .filter((i) => !seen.has(i.id) && seen.add(i.id))
+      .map((i) => findItem(i.id))
+      .filter(Boolean)
+      .map((p) => `<li>${emblemIcon(p)}${escapeHtml(p.name)}</li>`)
+      .join("");
   }
 
-  function stepProducts() {
-    const fixed = new Set(requiredItems(state.size, state.heating).map((r) => r.id));
-    const groups = new Map();
-    for (const p of products) {
-      if (fixed.has(p.id)) continue;
-      if (!groups.has(p.category)) groups.set(p.category, []);
-      groups.get(p.category).push(p);
+  function stepQuestions() {
+    const n = questions.length;
+    if (state.q >= n) {
+      // All answered: an overview where any answer can be changed.
+      return `
+        <h3>Cevaplarınız</h3>
+        <ul class="answer-list">
+          ${questions
+            .map(
+              (q) => `
+            <li>
+              <span>${escapeHtml(q.title)}</span>
+              <span class="answer-toggle" role="group" aria-label="${escapeHtml(q.title)}">
+                <button type="button" data-answer="${q.id}" data-yes="1" aria-pressed="${state.answers[q.id] === true}">Evet</button>
+                <button type="button" data-answer="${q.id}" data-yes="0" aria-pressed="${state.answers[q.id] === false}">Hayır</button>
+              </span>
+            </li>`
+            )
+            .join("")}
+        </ul>
+        ${navHtml({ next: 3, nextLabel: "Krokime bak" })}`;
     }
+    const q = questions[state.q];
     return `
-      <h3>Ürünlerinizi seçin</h3>
-      <p class="muted">Ürünleri bir odaya eklemek için krokide ya da aşağıda o odaya dokunun. Buradan eklediğiniz ürünler odası belirtilmeden pakete girer. Fiyat her değişiklikte güncellenir.</p>
-      <p class="list-title">Odaya göre ekle</p>
-      ${roomChips()}
-      ${[...groups]
-        .map(
-          ([category, list]) => `
-        <h4 class="list-title">${escapeHtml(category)}</h4>
-        <ul class="builder-items">${list.map((p) => rowHtml(p, 0)).join("")}</ul>`
-        )
-        .join("")}
-      ${navHtml({ next: 4, nextLabel: "Özete geç" })}`;
-  }
-
-  /** "Salon 1, Oda 2 1" under a product row. */
-  function roomsLine(id) {
-    const parts = rooms()
-      .filter((r) => roomQty(r.id, id))
-      .map((r) => `${escapeHtml(r.label)} ${roomQty(r.id, id)}`);
-    const unplaced = qtyOf(id) - placedQty(state.placements, id);
-    if (!parts.length) return "";
-    return `<span class="builder-item-rooms">${icon("layers")} ${parts.join(" · ")}${unplaced > 0 ? ` · odası seçilmemiş ${unplaced}` : ""}</span>`;
-  }
-
-  function roomEditor(inSide = false) {
-    const room = rooms().find((r) => r.id === state.room);
-    const here = Object.entries(state.placements[room.id] || {})
-      .map(([id]) => findItem(id))
-      .filter(Boolean);
-    const groups = new Map();
-    for (const p of products) {
-      if (!groups.has(p.category)) groups.set(p.category, []);
-      groups.get(p.category).push(p);
-    }
-    return `
-      <div class="room-editor${inSide ? " in-side" : ""}">
-        ${
-          inSide
-            ? `<div class="room-editor-head"><h3>${escapeHtml(room.label)}</h3><button type="button" class="link-button" data-close-room>Kapat ✕</button></div>
-               <p class="room-editor-price">Paket fiyatı <strong>${formatMoney(toCents(customPrice(state.items).total))}</strong></p>`
-            : `<button type="button" class="link-button" data-close-room>← ${STEPS[state.step]} adımına dön</button>
-               <h3>${escapeHtml(room.label)}</h3>
-               <p class="muted">Bu odaya koymak istediğiniz ürünleri seçin; krokide odanın üzerinde küçük simgeler olarak görünür. Fiyat her değişiklikte güncellenir.</p>`
-        }
-        ${roomChips()}
-        <h4 class="list-title">Bu odada</h4>
-        ${
-          here.length
-            ? `<ul class="builder-items">${here.map((p) => roomRowHtml(p, room.id)).join("")}</ul>`
-            : `<p class="muted">Bu odada henüz ürün yok. Aşağıdan ekleyin.</p>`
-        }
-        ${[...groups]
-          .map(
-            ([category, list]) => `
-          <details class="room-group">
-            <summary>${escapeHtml(category)} <span class="muted">(${list.length})</span></summary>
-            <ul class="builder-items">${list.map((p) => roomRowHtml(p, room.id)).join("")}</ul>
-          </details>`
-          )
-          .join("")}
+      <div class="question">
+        <div class="question-progress" aria-hidden="true"><span style="width:${Math.round((state.q / n) * 100)}%"></span></div>
+        <p class="question-count">Soru ${state.q + 1} / ${n}</p>
+        <h3>${escapeHtml(q.title)}</h3>
+        <p class="muted">${escapeHtml(q.hint)}</p>
+        <ul class="question-preview">${questionPreview(q)}</ul>
+        <div class="question-answers">
+          <button type="button" class="btn btn-primary" data-answer="${q.id}" data-yes="1" aria-pressed="${state.answers[q.id] === true}">Evet, ekle</button>
+          <button type="button" class="btn btn-secondary" data-answer="${q.id}" data-yes="0" aria-pressed="${state.answers[q.id] === false}">Hayır</button>
+        </div>
         <div class="builder-nav">
-          <span></span>
-          <button type="button" class="btn btn-primary" data-close-room>Tamam</button>
+          <button type="button" class="link-button" data-prev-q>← ${state.q ? "Önceki soru" : "Isıtma"}</button>
+          <button type="button" class="link-button" data-skip-q>Soruları atla</button>
         </div>
       </div>`;
   }
 
-  function roomRowHtml(p, room) {
-    const id = escapeHtml(p.id);
-    const name = escapeHtml(p.name);
-    const qty = roomQty(room, p.id);
-    const total = qtyOf(p.id);
-    const full = total >= CUSTOM_MAX_QTY && total - placedQty(state.placements, p.id) <= 0;
+  function stepPlan() {
     return `
-      <li class="builder-item${qty ? " is-on" : ""}">
-        <span class="extra-media">${mediaHtml(p)}</span>
-        <div class="builder-item-info">
-          <strong>${emblemIcon(p)}${name}</strong>
-          <span class="muted">${total ? `Pakette toplam ${total} adet` : escapeHtml(p.description)}</span>
-        </div>
-        <div class="stepper stepper-sm" role="group" aria-label="${name}: bu odada adet">
-          <button type="button" data-rqty="${id}" data-delta="-1" data-focus-key="rdec-${id}" aria-label="Bu odadan bir azalt" ${qty <= 0 ? "disabled" : ""}>−</button>
-          <output>${qty}</output>
-          <button type="button" data-rqty="${id}" data-delta="1" data-focus-key="rinc-${id}" aria-label="Bu odaya bir ekle" ${full ? "disabled" : ""}>+</button>
-        </div>
-      </li>`;
+      <h3>Krokiniz hazır</h3>
+      <ul class="tick-list">
+        <li>${icon("check")}Önerdiğimiz ürünler odalara yerleşti.</li>
+        <li>${icon("check")}Değiştirmek için bir odaya dokunun.</li>
+      </ul>
+      ${roomChips()}
+      ${phone.matches ? doesHtml() : ""}
+      ${navHtml({ next: 4, nextLabel: "Özete geç" })}`;
   }
 
   function stepSummary(ownPackage) {
@@ -516,34 +480,96 @@ export function initBuilder() {
         )
         .join("")}
       ${unplaced.length ? `<h4 class="list-title">Odası seçilmemiş</h4><ul class="pkg-items">${list(unplaced)}</ul>` : ""}
-      <p><button type="button" class="link-button" data-goto="3">Ürün ekle veya çıkar</button></p>
       <div class="builder-total">
         <div><span>Paket fiyatı</span><strong>${formatMoney(toCents(pkg.price))}</strong></div>
         <div class="muted"><span>Şimdi ödenecek kapora (%${Math.round(settings.payment.depositRate * 100)})</span><span>${formatMoney(depositCents(pkg))}</span></div>
       </div>
-      <p class="fine-print">${icon("check")}<span>Fiyata ürünler, elektrikçi ve kurulum hizmeti, ulaşım, garanti ve %20 KDV dahildir. Ürünlerin odalara yerleşimi kurulum öncesi görüşmede birlikte netleşir. Kapora sonraki adımda havale/EFT ile ödenir.</span></p>
+      <ul class="tick-list tick-list-small">
+        <li>${icon("check")}Kurulum, elektrikçi, ulaşım, garanti ve KDV dahil</li>
+        <li>${icon("check")}Güncellemeler geceleri otomatik: 2026'da çalışan sisteminiz 2027'de de çalışır</li>
+        <li>${icon("check")}Kapora havale/EFT ile; kalan tutar ve kurulum günü telefonda netleşir</li>
+      </ul>
       <div class="builder-nav">
         <button type="button" class="btn btn-secondary" data-goto="3">← Geri</button>
         <button type="button" class="btn btn-primary" data-finish>${ownPackage ? "Paketimi güncelle ve devam et" : "Bu paketi seç ve devam et"} →</button>
       </div>`;
   }
 
-  function rowHtml(p, min, tag = min ? "Zorunlu" : "") {
+  /** "Ürünleriniz ne yapıyor?": one short line per product (under the plan). */
+  function doesHtml() {
+    const required = new Set(requiredItems(state.size, state.heating).filter((r) => r.min > 0).map((r) => r.id));
+    const order = products.map((p) => p.id);
+    const items = [...state.items].sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+    if (!items.length) return "";
+    return `
+      <div class="does">
+        <p class="cart-line-kind">Ürünleriniz ne yapıyor?</p>
+        <ul class="does-list">
+          ${items
+            .map(({ id, qty }) => {
+              const p = findItem(id);
+              if (!p) return "";
+              return `
+            <li>
+              ${emblemIcon(p)}
+              <span class="does-text">
+                <span class="does-name"><strong>${escapeHtml(p.name)}</strong>${qty > 1 ? ` <span class="does-qty">×${qty}</span>` : ""}${required.has(id) ? ` <span class="tag">Sistem</span>` : ""}</span>
+                <span class="muted">${escapeHtml(p.description)}</span>
+              </span>
+            </li>`;
+            })
+            .join("")}
+        </ul>
+      </div>`;
+  }
+
+  function roomEditor(inSide = false) {
+    const room = rooms().find((r) => r.id === state.room);
+    const here = Object.keys(state.placements[room.id] || {}).map(findItem).filter(Boolean);
+    const hereIds = new Set(here.map((p) => p.id));
+    const suggested = (roomProducts[room.kind] || []).filter((id) => !hereIds.has(id)).map(findItem).filter(Boolean);
+    const shownIds = new Set([...hereIds, ...suggested.map((p) => p.id)]);
+    const others = products.filter((p) => !shownIds.has(p.id));
+    return `
+      <div class="room-editor${inSide ? " in-side" : ""}">
+        ${
+          inSide
+            ? `<div class="room-editor-head"><h3>${escapeHtml(room.label)}</h3><button type="button" class="link-button" data-close-room>Kapat ✕</button></div>
+               <p class="room-editor-price">Paket fiyatı <strong>${formatMoney(toCents(customPrice(state.items).total))}</strong></p>`
+            : `<button type="button" class="link-button" data-close-room>← ${STEPS[state.step]} adımına dön</button>
+               <h3>${escapeHtml(room.label)}</h3>`
+        }
+        ${roomChips()}
+        ${here.length ? `<h4 class="list-title">Bu odada</h4><ul class="builder-items">${here.map((p) => roomRowHtml(p, room.id)).join("")}</ul>` : ""}
+        ${suggested.length ? `<h4 class="list-title">Bu odaya önerilenler</h4><ul class="builder-items">${suggested.map((p) => roomRowHtml(p, room.id)).join("")}</ul>` : ""}
+        <details class="room-group">
+          <summary>Diğer ürünler <span class="muted">(${others.length})</span></summary>
+          <ul class="builder-items">${others.map((p) => roomRowHtml(p, room.id)).join("")}</ul>
+        </details>
+        <div class="builder-nav">
+          <span></span>
+          <button type="button" class="btn btn-primary" data-close-room>Tamam</button>
+        </div>
+      </div>`;
+  }
+
+  function roomRowHtml(p, room) {
     const id = escapeHtml(p.id);
     const name = escapeHtml(p.name);
-    const qty = qtyOf(p.id);
+    const qty = roomQty(room, p.id);
+    const total = qtyOf(p.id);
+    const full = total >= CUSTOM_MAX_QTY && total - placedQty(state.placements, p.id) <= 0;
     return `
       <li class="builder-item${qty ? " is-on" : ""}">
         <span class="extra-media">${mediaHtml(p)}</span>
         <div class="builder-item-info">
-          <strong>${name}</strong>${tag ? ` <span class="tag${min ? " tag-required" : ""}">${tag}</span>` : ""}
+          <strong>${emblemIcon(p)}${name}</strong>
           <span class="muted">${escapeHtml(p.description)}</span>
-          ${roomsLine(p.id)}
         </div>
-        <div class="stepper stepper-sm" role="group" aria-label="${name}: adet">
-          <button type="button" data-bqty="${id}" data-delta="-1" data-focus-key="bdec-${id}" aria-label="Bir azalt" ${qty <= min ? "disabled" : ""}>−</button>
+        <div class="stepper stepper-sm" role="group" aria-label="${name}: bu odada adet">
+          <button type="button" data-rqty="${id}" data-delta="-1" data-focus-key="rdec-${id}" aria-label="Bu odadan bir azalt" ${qty <= 0 ? "disabled" : ""}>−</button>
           <output>${qty}</output>
-          <button type="button" data-bqty="${id}" data-delta="1" data-focus-key="binc-${id}" aria-label="Bir artır" ${qty >= CUSTOM_MAX_QTY ? "disabled" : ""}>+</button>
+          <button type="button" data-rqty="${id}" data-delta="1" data-focus-key="rinc-${id}" aria-label="Bu odaya bir ekle" ${full ? "disabled" : ""}>+</button>
         </div>
       </li>`;
   }
@@ -554,9 +580,8 @@ export function initBuilder() {
     return `
       <aside class="builder-summary" aria-live="polite">
         <p class="cart-line-kind">Kendi paketiniz</p>
-        <p class="muted">${escapeHtml(heatingOf(state.heating).name)}</p>
+        <p class="muted">${count} ürün · kurulum ve KDV dahil</p>
         <p class="builder-price">${formatMoney(toCents(total))}</p>
-        <p class="muted">${count} ürün · kurulum, ulaşım, garanti ve KDV dahil</p>
         ${state.step < 4 ? `<button type="button" class="btn btn-primary btn-block" data-goto="4">Özete geç</button>` : ""}
       </aside>`;
   }
@@ -583,16 +608,18 @@ export function initBuilder() {
 
   // ── Clicks ────────────────────────────────────────────────────────────────
   root.addEventListener("click", (e) => {
-    const goto = e.target.closest("[data-goto]");
-    const size = e.target.closest("[data-size]");
-    const heating = e.target.closest("[data-heating]");
-    const balconies = e.target.closest("[data-balconies]");
-    const roomEl = e.target.closest("[data-room]");
-    const qty = e.target.closest("[data-bqty]");
-    const rqty = e.target.closest("[data-rqty]");
-    if (e.target.closest("[data-toggle-plan]")) {
+    const t = e.target;
+    const goto = t.closest("[data-goto]");
+    const size = t.closest("[data-size]");
+    const kind = t.closest("[data-kind]");
+    const heating = t.closest("[data-heating]");
+    const balconies = t.closest("[data-balconies]");
+    const answerEl = t.closest("[data-answer]");
+    const roomEl = t.closest("[data-room]");
+    const rqty = t.closest("[data-rqty]");
+    if (t.closest("[data-toggle-plan]")) {
       const collapsed = sideEl.classList.toggle("is-collapsed");
-      const button = e.target.closest("[data-toggle-plan]");
+      const button = t.closest("[data-toggle-plan]");
       button.textContent = collapsed ? "Krokiyi göster" : "Krokiyi gizle";
       button.setAttribute("aria-expanded", String(!collapsed));
       return;
@@ -606,10 +633,28 @@ export function initBuilder() {
       openRoom(roomEl.dataset.room);
       return;
     }
-    if (e.target.closest("[data-close-room]")) {
+    if (t.closest("[data-close-room]")) {
       state.room = null;
       draw();
       revealPanel();
+      return;
+    }
+    if (answerEl) {
+      answer(answerEl.dataset.answer, answerEl.dataset.yes === "1");
+      draw();
+      revealPanel();
+      return;
+    }
+    if (t.closest("[data-prev-q]")) {
+      if (state.q > 0) state.q -= 1;
+      else state.step = 1;
+      draw();
+      return;
+    }
+    if (t.closest("[data-skip-q]")) {
+      state.q = questions.length;
+      state.step = 3;
+      draw();
       return;
     }
     if (balconies) {
@@ -633,24 +678,25 @@ export function initBuilder() {
       if (sizeOf(state.size).large) planning.scrollIntoView({ block: "start", behavior: "smooth" });
       return;
     }
+    if (kind) {
+      const k = heatingKinds.find((x) => x.id === kind.dataset.kind);
+      const current = kindOf(state.heating);
+      if (current?.id !== k.id) chooseHeating(k.system || k.floor.petek);
+      draw();
+      return;
+    }
     if (heating) {
       chooseHeating(heating.dataset.heating);
       draw();
-      root.scrollIntoView({ block: "start", behavior: "smooth" });
       return;
     }
-    if (qty) {
-      setQty(qty.dataset.bqty, qtyOf(qty.dataset.bqty) + Number(qty.dataset.delta));
-      draw();
-      return;
-    }
-    if (e.target.closest("[data-load-saved]")) {
+    if (t.closest("[data-load-saved]")) {
       state = fromOrder(getOrder().custom);
       planKey = null;
       draw();
       return;
     }
-    if (e.target.closest("[data-finish]")) {
+    if (t.closest("[data-finish]")) {
       state.chosen = true;
       save();
       setCustom(custom());

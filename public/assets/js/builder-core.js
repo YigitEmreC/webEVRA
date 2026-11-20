@@ -10,7 +10,7 @@
 // floor plan (floor-plan.js) each product goes in; products not placed in any
 // room are still in the package. Data and rules: public/data/builder.js.
 
-import { CUSTOM_ID, CUSTOM_NAME, MAX_BALCONIES, homeSizes, systemItems, heatingSystems } from "../../data/builder.js";
+import { CUSTOM_ID, CUSTOM_NAME, MAX_BALCONIES, homeSizes, systemItems, heatingSystems, questions } from "../../data/builder.js";
 import { planRooms } from "./floor-plan.js";
 import { findItem, toCents } from "./pricing.js";
 import { settings } from "../../data/settings.js";
@@ -64,7 +64,112 @@ export function cleanCustom(raw) {
   }
   const balconies = cleanBalconies(raw);
   const items = [...qty].map(([id, q]) => ({ id, qty: q }));
-  return { size: size.id, balconies, heating: heating.id, items, placements: normalizePlacements(raw.placements, items, roomsOf(size.id, balconies)) };
+  return {
+    size: size.id,
+    balconies,
+    heating: heating.id,
+    items,
+    placements: normalizePlacements(raw.placements, items, roomsOf(size.id, balconies)),
+    answers: cleanAnswers(raw.answers),
+  };
+}
+
+// ── Questions ("Sorular" step): the system suggests products ───────────────────
+
+export const questionOf = (id) => questions.find((q) => q.id === id) || null;
+
+/** { safety: true, pets: false, … } with only known questions. */
+export function cleanAnswers(raw) {
+  const out = {};
+  if (!raw || typeof raw !== "object") return out;
+  for (const q of questions) if (typeof raw[q.id] === "boolean") out[q.id] = raw[q.id];
+  return out;
+}
+
+/** The room ids a question item goes to in this home (see data/builder.js → room). */
+export function resolveRooms(spec, rooms) {
+  const ids = rooms.map((r) => r.id);
+  const has = (id) => ids.includes(id);
+  const beds = rooms.filter((r) => r.kind === "bed").map((r) => r.id);
+  switch (spec.room) {
+    case "rooms":
+      return ["living", ...beds].filter(has);
+    case "bedrooms":
+      return beds;
+    case "kids":
+      return [has("bed2") ? "bed2" : "bed1"];
+    case "balconies": {
+      const balconies = rooms.filter((r) => r.kind === "balcony").map((r) => r.id);
+      return balconies.length ? balconies : spec.fallback && has(spec.fallback) ? [spec.fallback] : [];
+    }
+    default:
+      return has(spec.room) ? [spec.room] : [];
+  }
+}
+
+/** What a question puts where: { room: { productId: qty } }. */
+export function questionPlacements(question, size, balconies) {
+  const rooms = roomsOf(size, balconies);
+  const out = {};
+  for (const spec of question?.items || []) {
+    for (const room of resolveRooms(spec, rooms)) {
+      const slot = (out[room] ||= {});
+      slot[spec.id] = (slot[spec.id] || 0) + (spec.qty || 1);
+    }
+  }
+  return out;
+}
+
+/**
+ * Answering a question. "Evet" makes sure its products are in their rooms;
+ * "Hayır" takes out what only this question had added (products another "Evet"
+ * also wants stay). Products the customer added by hand are left alone.
+ * Returns { items, placements, answers }.
+ */
+export function applyAnswer(custom, questionId, yes) {
+  const q = questionOf(questionId);
+  const items = new Map(custom.items.map((i) => [i.id, i.qty]));
+  const placements = JSON.parse(JSON.stringify(custom.placements || {}));
+  const answers = { ...(custom.answers || {}), [questionId]: yes };
+  const mine = questionPlacements(q, custom.size, custom.balconies);
+  const others = questions
+    .filter((o) => o.id !== questionId && answers[o.id])
+    .map((o) => questionPlacements(o, custom.size, custom.balconies));
+  for (const [room, entries] of Object.entries(mine)) {
+    for (const [id, qty] of Object.entries(entries)) {
+      const now = placements[room]?.[id] || 0;
+      if (yes) {
+        if (now >= qty) continue;
+        const add = Math.min(qty - now, CUSTOM_MAX_QTY - (items.get(id) || 0));
+        if (add <= 0) continue;
+        (placements[room] ||= {})[id] = now + add;
+        items.set(id, (items.get(id) || 0) + add);
+      } else {
+        const keep = Math.max(0, ...others.map((o) => o[room]?.[id] || 0));
+        const remove = Math.min(now - keep, qty);
+        if (remove <= 0) continue;
+        placements[room][id] = now - remove;
+        if (!placements[room][id]) delete placements[room][id];
+        items.set(id, Math.max((items.get(id) || 0) - remove, minQty(custom, id)));
+      }
+    }
+  }
+  const list = [...items].filter(([, n]) => n > 0).map(([id, qty]) => ({ id, qty }));
+  return { items: list, placements: normalizePlacements(placements, list, roomsOf(custom.size, custom.balconies)), answers };
+}
+
+/**
+ * Builds a package from scratch: system + heating products in their rooms, then
+ * every "Evet" answer. Used when the home itself changes after the questions.
+ */
+export function buildFromAnswers(size, balconies, heating, answers = {}) {
+  let custom = { size, balconies, heating, items: startItems(size, heating), placements: {}, answers: {} };
+  custom.placements = autoPlace(custom);
+  for (const q of questions) {
+    if (answers[q.id] === undefined) continue;
+    custom = { ...custom, ...applyAnswer(custom, q.id, answers[q.id]) };
+  }
+  return custom;
 }
 
 /** 0–4 balconies, null when not answered (older saves had balcony: true/false). */
@@ -191,6 +296,7 @@ export function customPackage(custom) {
     balconies: clean.balconies,
     heating: clean.heating,
     placements: clean.placements,
+    answers: clean.answers,
   };
 }
 

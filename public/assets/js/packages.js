@@ -61,7 +61,6 @@ function card(p, compact, selected, hasPackage, open) {
           <span class="price price-lg">${formatMoney(price)}</span>
           ${value > price ? `<span class="price-was">Ayrı ayrı ${formatMoney(value)} değerinde</span>` : ""}
         </p>
-        ${compact ? "" : `<p class="card-text">${escapeHtml(p.description)}</p>`}
         ${highlights ? `<h4 class="list-title">Özellikler</h4><ul class="check-list">${highlights}</ul>` : ""}
         ${more > 0 ? `<p class="muted">+ ${more} özellik daha</p>` : ""}
         ${compact ? "" : contentsHtml(p, open)}
