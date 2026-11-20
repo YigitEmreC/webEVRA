@@ -6,7 +6,9 @@
 // From step 1 on, a bird's-eye floor plan (floor-plan.js) stays beside the steps
 // (on phones: pinned at the top), with "Ürünleriniz ne yapıyor?" under it. On
 // computers the room editor opens under the plan (the page doesn't move); on
-// phones it takes the place of the step.
+// phones it takes the place of the step. Tapping a product emblem on the plan
+// (or a line of "Ürünleriniz ne yapıyor?") opens an info card in the left
+// column: what it does and which automations it makes possible.
 // Rules and data: builder-core.js and data/builder.js. Price: customPrice.
 // "5+1 ve üzeri" doesn't build a package: it opens the planning form (#planning).
 // The draft lives in sessionStorage ("builder.v1"): it survives going to another
@@ -39,16 +41,17 @@ import {
   roomSummary,
   applyAnswer,
   buildFromAnswers,
+  SINGLE_ITEMS,
 } from "./builder-core.js";
 import { floorPlanSvg, emblemsSvg, categoryIcon } from "./floor-plan.js";
 import { getOrder, setCustom } from "./cart-store.js";
 import { settings } from "../../data/settings.js";
-import { escapeHtml, icon, mediaHtml, toast } from "./ui.js";
+import { escapeHtml, icon, toast, typeTileHtml } from "./ui.js";
 
 const KEY = "builder.v1";
 const STEPS = ["Ev", "Isıtma", "Sorular", "Krokiniz", "Özet"];
 
-const FRESH = () => ({ step: 0, q: 0, room: null, size: null, balconies: null, heating: null, items: [], placements: {}, answers: {}, chosen: false });
+const FRESH = () => ({ step: 0, q: 0, room: null, info: null, size: null, balconies: null, heating: null, items: [], placements: {}, answers: {}, chosen: false });
 const fromOrder = (custom) => ({ ...FRESH(), step: 4, q: questions.length, ...custom, answers: cleanAnswers(custom.answers), chosen: true });
 
 function loadDraft() {
@@ -102,7 +105,7 @@ export function initBuilder() {
 
   const save = () => {
     try {
-      const { room, ...rest } = state;
+      const { room, info, ...rest } = state;
       sessionStorage.setItem(KEY, JSON.stringify(rest));
     } catch {
       /* not saved; fine */
@@ -135,7 +138,8 @@ export function initBuilder() {
         <div data-does-side></div>
         <div data-summary></div>
       </aside>
-    </div>`;
+    </div>
+    <div class="builder-mobilebar" data-mobilebar hidden></div>`;
   const stepsEl = root.querySelector("[data-steps]");
   const panelEl = root.querySelector("[data-panel]");
   const sideEl = root.querySelector("[data-side]");
@@ -144,6 +148,7 @@ export function initBuilder() {
   const summaryEl = root.querySelector("[data-summary]");
   const roomSideEl = root.querySelector("[data-room-side]");
   const doesSideEl = root.querySelector("[data-does-side]");
+  const mobileBarEl = root.querySelector("[data-mobilebar]");
   const phone = window.matchMedia("(max-width: 899px)");
   let planKey = null;
 
@@ -247,12 +252,16 @@ export function initBuilder() {
             </button>
           </li>`
         ).join("")}`;
-    panelEl.innerHTML = editorInPanel ? roomEditor() : [stepHome, stepHeating, stepQuestions, stepPlan, stepSummary][state.step](ownPackage);
+    panelEl.innerHTML =
+      (state.info ? infoHtml(state.info) : "") +
+      (editorInPanel ? roomEditor() : [stepHome, stepHeating, stepQuestions, stepPlan, stepSummary][state.step](ownPackage));
     roomSideEl.innerHTML = editorInSide ? roomEditor(true) : "";
     doesSideEl.innerHTML = !phone.matches && !editorInSide && state.step >= 2 && !large ? doesHtml() : "";
     sideEl.classList.toggle("is-editing", editorInSide);
     sideEl.hidden = Boolean(large);
     summaryEl.innerHTML = showSummary && !editorInSide ? summaryHtml() : "";
+    mobileBarEl.hidden = !(phone.matches && showSummary);
+    if (!mobileBarEl.hidden) mobileBarEl.innerHTML = mobileBarHtml();
     drawPlan();
 
     planning.hidden = !large;
@@ -281,7 +290,7 @@ export function initBuilder() {
       return;
     }
     // Emblems and the selected room change without redrawing the plan.
-    const { html, filled } = emblemsSvg({ bedrooms: size.bedrooms, balconies: state.balconies || 0 }, state.placements, findItem);
+    const { html, filled } = emblemsSvg({ bedrooms: size.bedrooms, balconies: state.balconies || 0 }, state.placements, findItem, { size: phone.matches ? 24 : 18 });
     const svg = planEl.querySelector(".floor-plan");
     svg.querySelector("[data-emblems]").innerHTML = html;
     svg.querySelectorAll(".fp-room[data-room]").forEach((g) => {
@@ -460,7 +469,7 @@ export function initBuilder() {
         .map(
           ({ item, qty }) => `
           <li>
-            <span class="extra-media">${mediaHtml(item)}</span>
+            ${typeTileHtml(item)}
             <span>${escapeHtml(item.name)}</span>
             <span class="pkg-qty">${qty}×</span>
           </li>`
@@ -496,6 +505,31 @@ export function initBuilder() {
   }
 
   /** "Ürünleriniz ne yapıyor?": one short line per product (under the plan). */
+  /** Info card: what a product does, where it is, and automations it allows. */
+  function infoHtml(id) {
+    const p = findItem(id);
+    if (!p) return "";
+    const qty = qtyOf(id);
+    const where = rooms()
+      .filter((r) => roomQty(r.id, id))
+      .map((r) => `${r.label}${roomQty(r.id, id) > 1 ? ` (${roomQty(r.id, id)})` : ""}`);
+    const bullets = (list) => list.map((x) => `<li>${icon("check")}<span>${escapeHtml(x)}</span></li>`).join("");
+    return `
+      <div class="product-info" role="dialog" aria-label="${escapeHtml(p.name)}">
+        <div class="product-info-head">
+          ${typeTileHtml(p)}
+          <div>
+            <h3>${escapeHtml(p.name)}</h3>
+            <p class="muted">${qty ? `Paketinizde ${qty} adet${where.length ? ` · ${escapeHtml(where.join(", "))}` : ""}` : escapeHtml(p.category)}</p>
+          </div>
+          <button type="button" class="link-button product-info-close" data-close-info aria-label="Kapat">✕</button>
+        </div>
+        <p>${escapeHtml(p.description)}</p>
+        ${p.features?.length ? `<p class="list-title">Ne işe yarar?</p><ul class="tick-list">${bullets(p.features)}</ul>` : ""}
+        ${p.uses?.length ? `<p class="list-title">Olası otomasyonlar</p><ul class="tick-list tick-list-auto">${bullets(p.uses)}</ul>` : ""}
+      </div>`;
+  }
+
   function doesHtml() {
     const required = new Set(requiredItems(state.size, state.heating).filter((r) => r.min > 0).map((r) => r.id));
     const order = products.map((p) => p.id);
@@ -510,7 +544,7 @@ export function initBuilder() {
               const p = findItem(id);
               if (!p) return "";
               return `
-            <li>
+            <li class="does-item" data-product="${escapeHtml(id)}" tabindex="0" role="button" aria-label="${escapeHtml(p.name)}: ne işe yarar?">
               ${emblemIcon(p)}
               <span class="does-text">
                 <span class="does-name"><strong>${escapeHtml(p.name)}</strong>${qty > 1 ? ` <span class="does-qty">×${qty}</span>` : ""}${required.has(id) ? ` <span class="tag">Sistem</span>` : ""}</span>
@@ -525,11 +559,12 @@ export function initBuilder() {
 
   function roomEditor(inSide = false) {
     const room = rooms().find((r) => r.id === state.room);
-    const here = Object.keys(state.placements[room.id] || {}).map(findItem).filter(Boolean);
+    const offer = (p) => p && !SINGLE_ITEMS.includes(p.id); // the main system stays put (one per home)
+    const here = Object.keys(state.placements[room.id] || {}).map(findItem).filter(offer);
     const hereIds = new Set(here.map((p) => p.id));
-    const suggested = (roomProducts[room.kind] || []).filter((id) => !hereIds.has(id)).map(findItem).filter(Boolean);
+    const suggested = (roomProducts[room.kind] || []).filter((id) => !hereIds.has(id)).map(findItem).filter(offer);
     const shownIds = new Set([...hereIds, ...suggested.map((p) => p.id)]);
-    const others = products.filter((p) => !shownIds.has(p.id));
+    const others = products.filter((p) => offer(p) && !shownIds.has(p.id));
     return `
       <div class="room-editor${inSide ? " in-side" : ""}">
         ${
@@ -561,7 +596,7 @@ export function initBuilder() {
     const full = total >= CUSTOM_MAX_QTY && total - placedQty(state.placements, p.id) <= 0;
     return `
       <li class="builder-item${qty ? " is-on" : ""}">
-        <span class="extra-media">${mediaHtml(p)}</span>
+        ${typeTileHtml(p)}
         <div class="builder-item-info">
           <strong>${emblemIcon(p)}${name}</strong>
           <span class="muted">${escapeHtml(p.description)}</span>
@@ -586,6 +621,28 @@ export function initBuilder() {
       </aside>`;
   }
 
+  const headerBottom = () => document.querySelector(".site-header")?.getBoundingClientRect().bottom || 70;
+
+  /** Brings the info card into view if it is off screen (it sits at the top of the left column). */
+  function revealInfo() {
+    const card = panelEl.querySelector(".product-info");
+    if (!card) return;
+    const covered = headerBottom();
+    const { top, bottom } = card.getBoundingClientRect();
+    if (top >= covered - 4 && bottom <= window.innerHeight) return;
+    window.scrollBy({ top: top - covered - 8, behavior: "smooth" });
+  }
+
+  /** Phones: price always at the bottom of the screen, and a way back up to the plan. */
+  function mobileBarHtml() {
+    const { total } = customPrice(state.items);
+    const count = state.items.reduce((sum, i) => sum + i.qty, 0);
+    return `
+      <button type="button" class="mobilebar-plan" data-show-plan>${icon("layers")}<span>Kroki</span></button>
+      <p><strong>${formatMoney(toCents(total))}</strong><span>${count} ürün · kurulum ve KDV dahil</span></p>
+      ${state.step < 4 ? `<button type="button" class="btn btn-primary" data-goto="4">Özet</button>` : ""}`;
+  }
+
   function openRoom(id) {
     if (!canEditRooms()) return;
     state.room = id;
@@ -594,13 +651,13 @@ export function initBuilder() {
   }
 
   /**
-   * Phones only: the step / room editor sits under the pinned plan. Scroll only
-   * when its top is hidden behind the plan or far below; otherwise stay put.
+   * Phones only: the step / room editor sits under the plan. Scroll only when its
+   * top is hidden behind the header or far below; otherwise stay put.
    * (On computers nothing moves: the room editor opens under the plan.)
    */
   function revealPanel() {
     if (!phone.matches) return;
-    const covered = sideEl.getBoundingClientRect().bottom;
+    const covered = headerBottom();
     const top = panelEl.getBoundingClientRect().top;
     if (top >= covered - 4 && top < window.innerHeight * 0.75) return;
     window.scrollBy({ top: top - covered - 8, behavior: "smooth" });
@@ -609,6 +666,23 @@ export function initBuilder() {
   // ── Clicks ────────────────────────────────────────────────────────────────
   root.addEventListener("click", (e) => {
     const t = e.target;
+    if (t.closest("[data-show-plan]")) {
+      sideEl.classList.remove("is-collapsed");
+      window.scrollBy({ top: planEl.getBoundingClientRect().top - headerBottom() - 40, behavior: "smooth" });
+      return;
+    }
+    if (t.closest("[data-close-info]")) {
+      state.info = null;
+      draw();
+      return;
+    }
+    const productEl = t.closest("[data-product]");
+    if (productEl) {
+      state.info = productEl.dataset.product;
+      draw();
+      revealInfo();
+      return;
+    }
     const goto = t.closest("[data-goto]");
     const size = t.closest("[data-size]");
     const kind = t.closest("[data-kind]");
@@ -706,6 +780,14 @@ export function initBuilder() {
 
   // Rooms on the plan work with the keyboard too.
   root.addEventListener("keydown", (e) => {
+    const productEl = e.target.closest?.("[data-product]");
+    if (productEl && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      state.info = productEl.dataset.product;
+      draw();
+      revealInfo();
+      return;
+    }
     const roomEl = e.target.closest?.(".floor-plan [data-room]");
     if (roomEl && (e.key === "Enter" || e.key === " ")) {
       e.preventDefault();

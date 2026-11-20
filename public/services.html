@@ -45,106 +45,149 @@
     </div>
   </header>
 
-  <main id="main">
-    <section class="page-hero">
-      <div class="container">
-        <p class="eyebrow">Servisler</p>
-        <h1>Kurulum &amp; Bakım</h1>
-        <p class="lead">Sadece ürünleri göndermiyoruz, yardım da gönderiyoruz!</p>
+  <main id="main" class="svc">
+    <!-- ===== HERO ===== -->
+    <section class="svc-hero">
+      <div class="container svc-hero-inner">
+        <div>
+          <p class="eyebrow">Servisler</p>
+          <h1>Kurulumdan bakıma, hep yanınızdayız.</h1>
+          <p class="lead">Siz hiçbir şey hazırlamayın; gelip kuralım, anlatalım, sonra da arkasında duralım.</p>
+          <ul class="svc-facts">
+            <li class="c-blue"><strong>1 gün</strong><span>kurulum</span></li>
+            <li class="c-teal"><strong>2–3 saat</strong><span>evde çalışma</span></li>
+            <li class="c-amber"><strong>7 gün</strong><span>içinde bakım</span></li>
+          </ul>
+        </div>
+        <!-- Illustration: a house with its smart devices -->
+        <svg class="svc-hero-art" viewBox="0 0 360 280" role="img" aria-label="Akıllı cihazlarıyla bir ev">
+          <circle class="art-blob" cx="180" cy="150" r="118"/>
+          <path class="art-wave" d="M136 58a62 62 0 0 1 88 0M150 72a40 40 0 0 1 60 0M164 86a18 18 0 0 1 32 0"/>
+          <path class="art-roof" d="M92 150 180 88l88 62"/>
+          <rect class="art-house" x="108" y="140" width="144" height="100" rx="6"/>
+          <rect class="art-window glow" x="126" y="160" width="40" height="34" rx="4"/>
+          <path class="art-frame" d="M146 160v34M126 177h40"/>
+          <rect class="art-door" x="192" y="178" width="38" height="62" rx="4"/>
+          <circle class="art-knob" cx="222" cy="210" r="3"/>
+          <rect class="art-ground" x="60" y="238" width="240" height="6" rx="3"/>
+          <g class="art-badge c-green" transform="translate(52 120)"><circle r="22"/><path d="M0-11-9-7v6c0 6 4 10 9 12 5-2 9-6 9-12v-6Z"/></g>
+          <g class="art-badge c-amber" transform="translate(300 118)"><circle r="22"/><path d="M3 4V-9a3 3 0 0 0-6 0V4a6 6 0 1 0 6 0Z"/></g>
+          <g class="art-badge c-violet" transform="translate(304 200)"><circle r="20"/><rect x="-10" y="-7" width="14" height="14" rx="3"/><path d="m4-3 7-4v14l-7-4Z"/></g>
+          <g class="art-badge c-teal" transform="translate(58 204)"><circle r="20"/><path d="M-8 8 3-3M6-10a6 6 0 0 0-8 8l-7 7 3 3 7-7a6 6 0 0 0 8-8l-4 4-3-1-1-3Z"/></g>
+        </svg>
       </div>
     </section>
 
-    <!-- ===== INSTALLATION PROCEDURE ===== -->
+    <!-- ===== INSTALLATION ===== -->
     <section class="section" id="installation">
-      <div class="container split">
-        <div>
+      <div class="container">
+        <div class="section-head">
           <p class="eyebrow">Kurulum</p>
-          <h2>Kurulum nasıl işler</h2>
-          <p class="muted">Müşterimizin bir şey hazırlamasına gerek yoktur. Teknisyenimiz evinize gelip, cihazları teker teker planlanan şekilde kurar.</p>
-          <div class="notice">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-            <span>Kurulum başlandıktan sonra ortalama 2-3 saat sürer.</span>
-          </div>
+          <h2>5 adımda akıllı ev</h2>
+          <p class="lead">Hazırlamanız gereken hiçbir şey yok.</p>
         </div>
-        <ol class="steps">
-          <li class="card step">
-            <h3>Adım 1: Planlama</h3>
-            <p class="muted">Bir adet profesyonelle dilerseniz online, dilerseniz de yüz yüze, seçeceğiniz paket ve ürünleri, yerleşimlerini planlarsınız.</p>
-            <span class="step-meta">Ortalama 25-30 dakkika</span>
+        <ol class="svc-timeline">
+          <li class="c-blue">
+            <span class="svc-dot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16M6 16l9-9 3 3-9 9H6v-3Z"/><path d="m13 9 3 3"/></svg></span>
+            <span class="svc-num">1</span>
+            <h3>Planlama</h3>
+            <p>Online ya da evinizde birlikte planlıyoruz.</p>
+            <span class="svc-time">25–30 dk</span>
           </li>
-          <li class="card step">
-            <h3>Adım 2: Tavsiye ve Hesap</h3>
-            <p class="muted">Belirli bir planda anlaşıldıktan sonra bir teklif yapılır ve onayınıza göre siparişinizi hazırlamaya başlarız.</p>
-            <span class="step-meta">Ortalama 2 gün</span>
+          <li class="c-violet">
+            <span class="svc-dot"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></span>
+            <span class="svc-num">2</span>
+            <h3>Teklif</h3>
+            <p>Planı fiyatlandırır, onayınızı alırız.</p>
+            <span class="svc-time">~2 gün</span>
           </li>
-          <li class="card step">
-            <h3>Adım 3: Ürünler</h3>
-            <p class="muted">Ürünler hazır olduğunda sizinle iletişime geçip bir kurulum günü ayarlarız.</p>
-            <span class="step-meta">Ortalama 2-3 gün</span>
+          <li class="c-amber">
+            <span class="svc-dot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></span>
+            <span class="svc-num">3</span>
+            <h3>Hazırlık</h3>
+            <p>Ürünleri hazırlar, kurulum gününü ayarlarız.</p>
+            <span class="svc-time">2–3 gün</span>
           </li>
-          <li class="card step">
-            <h3>Adım 4: Kurulum Günü</h3>
-            <p class="muted">Teknisyenimiz sizi ziyaret edip cihazları teker teker kurar ve size nasıl kullanacağınızı anlatır.</p>
-            <span class="step-meta">Ortalama 3 saat</span>
+          <li class="c-teal">
+            <span class="svc-dot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4 2.6-2.6Z"/></svg></span>
+            <span class="svc-num">4</span>
+            <h3>Kurulum</h3>
+            <p>Teknisyenimiz cihazları tek tek kurar.</p>
+            <span class="svc-time">~3 saat</span>
           </li>
-          <li class="card step">
-            <h3>Adım 5: Teslim</h3>
-            <p class="muted">Teknisyenimiz size uygulamayı ve yapabildiklerinizi teker teker anlatır ve sizi yeni ev sisteminize bırakır.</p>
-            <span class="step-meta">Ortalama 30 dakkika</span>
+          <li class="c-green">
+            <span class="svc-dot"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="m9.5 12 2 2 3.5-4"/></svg></span>
+            <span class="svc-num">5</span>
+            <h3>Teslim</h3>
+            <p>Uygulamayı birlikte dener, size teslim ederiz.</p>
+            <span class="svc-time">~30 dk</span>
           </li>
         </ol>
       </div>
     </section>
 
-    <!-- ===== SUPPORT & MAINTENANCE AFTER INSTALLATION ===== -->
+    <!-- ===== AFTER INSTALLATION ===== -->
     <section class="section section-alt" id="aftercare">
       <div class="container">
         <div class="section-head">
           <p class="eyebrow">Bakım</p>
-          <h2>Destek &amp; kurulum sonrası bakım</h2>
-          <p class="lead">Hızlı servis hattımız mevcuttur. Bize <a href="/contact.html">İletişim</a> kısmından ulaşabilirsiniz.</p>
+          <h2>Kurulumdan sonra</h2>
         </div>
-        <div class="grid grid-4">
-          <div class="card feature">
-            <span class="feature-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.3 7.5 9.5 4.3-1.2 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m9 12 2 2 4-4"/></svg></span>
+        <div class="svc-tiles">
+          <article class="svc-tile c-green">
+            <span class="svc-tile-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.3 7.5 9.5 4.3-1.2 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m9 12 2 2 4-4"/></svg></span>
             <h3>Güvence</h3>
-            <p class="muted">Ürünlerin kendi güvenceleri kadardır. Ana sistem bozulursa bir ücret karşılığında değiştirilir.</p>
-          </div>
-          <div class="card feature">
-            <span class="feature-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="m5.6 5.6 3.6 3.6M14.8 14.8l3.6 3.6M18.4 5.6l-3.6 3.6M9.2 14.8l-3.6 3.6"/></svg></span>
-            <h3>Uzaktan yardım</h3>
-            <p class="muted">İletişime tıklayarak veya Hızlı servisimize başvurarak yardım alabilirsiniz.</p>
-          </div>
-          <div class="card feature">
-            <span class="feature-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M9 15.5l2 2 4-4"/></svg></span>
-            <h3>Bakım istekleri</h3>
-            <p class="muted">Talepte bulunduğunuz tarihten itibaren 7 iş günü içerisinde ziyaret edilecektir.</p>
-          </div>
-          <div class="card feature">
-            <span class="feature-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.6-4.5L3 9"/><path d="M3 4v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L21 15"/><path d="M21 20v-5h-5"/></svg></span>
-            <h3>Güncellemeler</h3>
-            <p class="muted">Güncellemeler geceleri, siz uyurken otomatik yapılır; 2026'da çalışan sisteminiz 2027'de de aynı şekilde çalışır. Sorun olursa Hızlı servisimize başvurun.</p>
-          </div>
+            <ul>
+              <li>Ürünler kendi garantisiyle</li>
+              <li>Ana sistem arızasında değişim (ücretli)</li>
+            </ul>
+          </article>
+          <article class="svc-tile c-blue">
+            <span class="svc-tile-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg></span>
+            <h3>Hızlı servis</h3>
+            <ul>
+              <li>Çoğu sorunu uzaktan çözeriz</li>
+              <li>Eve gelmemize gerek kalmaz</li>
+            </ul>
+          </article>
+          <article class="svc-tile c-amber">
+            <span class="svc-tile-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M9 15.5l2 2 4-4"/></svg></span>
+            <h3>Bakım ziyareti</h3>
+            <ul>
+              <li>Talepten sonra 7 iş günü içinde</li>
+              <li>Pil değişimi ve kontrol</li>
+            </ul>
+          </article>
+          <article class="svc-tile c-violet">
+            <span class="svc-tile-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></span>
+            <h3>Gece güncellemeleri</h3>
+            <ul>
+              <li>Siz uyurken, otomatik</li>
+              <li>2026'da çalışan, 2027'de de çalışır</li>
+            </ul>
+          </article>
         </div>
       </div>
     </section>
 
+    <!-- ===== SOMETHING WRONG? ===== -->
     <section class="section">
-      <div class="container split split-center">
-        <div>
-          <p class="eyebrow">Bir şey yanlış mı gitti?</p>
-          <h2>Bize ihityacınız varsa:</h2>
-          <p class="muted">İlk önce sıkça sorulan sorulara (SSS) göz atın; orada sorunuzun cevabı yoksa İletişim yoluyla bizden direkt yardım isteyebilirsiniz.</p>
+      <div class="container">
+        <div class="svc-help">
+          <div class="svc-help-head">
+            <p class="eyebrow">Sorun mu var?</p>
+            <h2>3 adımda çözüm</h2>
+          </div>
+          <ol class="svc-flow">
+            <li class="c-coral"><span class="svc-flow-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.5 2.5-10 10M21.5 2.5 15 21l-3.5-8.5L3 9l18.5-6.5Z"/></svg></span><strong>İstek gönderin</strong><span>Sipariş numaranızla</span></li>
+            <li class="c-blue"><span class="svc-flow-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span><strong>Uzaktan bakalım</strong><span>Çoğu sorun burada biter</span></li>
+            <li class="c-teal"><span class="svc-flow-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 12 4l9 7v9H3v-9Z"/><path d="M10 20v-5h4v5"/></svg></span><strong>Gerekirse gelelim</strong><span>Size uyan bir saatte</span></li>
+          </ol>
           <div class="actions">
-            <a class="btn btn-primary" href="/support.html#request">Yardım iste</a>
-            <a class="btn btn-secondary" href="/support.html#faq">SSS'yi oku</a>
+            <a class="btn btn-primary" href="/support.html#request">Destek iste</a>
+            <a class="btn btn-secondary" href="/support.html#faq">SSS'ye bak</a>
           </div>
         </div>
-        <ol class="steps">
-          <li class="card step"><h3>İstek yollarsınız.</h3><p class="muted">İletişime girip mail atma kısmından.</p></li>
-          <li class="card step"><h3>Uzaktan probleme bakarız.</h3><p class="muted">Çoğu problem uzaktan çözülebilecek kadar basittir.</p></li>
-          <li class="card step"><h3>Gerekirse ziyaret ederiz.</h3><p class="muted">Size uyan bir zamanda bir teknisyenle buluşun!</p></li>
-        </ol>
       </div>
     </section>
   </main>

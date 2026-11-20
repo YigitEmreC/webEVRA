@@ -17,7 +17,7 @@ import { emailConfigured, inbox, sendEmail, fieldsEmail, textToHtml } from "../.
 import { orderAutoReply } from "../../lib/email-templates.js";
 import { findItem, formatMoney, toCents, depositCents } from "../../public/assets/js/pricing.js";
 import { newOrderRef } from "../../lib/order-ref.js";
-import { CUSTOM_ID, customPackage, customPrice, sizeOf, heatingOf, balconyText, roomSummary, questionOf } from "../../public/assets/js/builder-core.js";
+import { CUSTOM_ID, customPackage, customPrice, sizeOf, heatingOf, balconyText, roomSummary, questionOf, SINGLE_ITEMS } from "../../public/assets/js/builder-core.js";
 
 const MAX_EXTRAS = 50;
 const MAX_QTY = 20;
@@ -55,7 +55,7 @@ export async function onRequestPost({ request, env }) {
     const [rawId, rawQty] = part.split(":");
     const item = findItem(String(rawId || "").trim());
     const qty = Math.floor(Number(rawQty ?? 1));
-    if (!item || item.kind !== "product" || !(qty > 0)) continue;
+    if (!item || item.kind !== "product" || !(qty > 0) || SINGLE_ITEMS.includes(item.id)) continue; // one main system per home
     merged.set(item.id, { item, qty: Math.min((merged.get(item.id)?.qty || 0) + qty, MAX_QTY) });
   }
   const extras = pkg.custom ? [] : [...merged.values()].slice(0, MAX_EXTRAS);

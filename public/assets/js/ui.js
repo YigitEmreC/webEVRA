@@ -1,5 +1,7 @@
 // Small shared helpers: icons, escaping, product images, the "added to cart" toast.
 
+import { categoryIcon } from "./floor-plan.js";
+
 const ICONS = {
   check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
   cart: '<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3h2.6l2.4 11.4a1.6 1.6 0 0 0 1.6 1.3h8.5a1.6 1.6 0 0 0 1.5-1.2L21 7H6"/>',
@@ -35,6 +37,14 @@ function placeholderIcon(item) {
 export function mediaHtml(item) {
   if (item.image) return `<img src="${escapeHtml(item.image)}" alt="" loading="lazy">`;
   return `<span class="media-placeholder">${icon(placeholderIcon(item))}</span>`;
+}
+
+/**
+ * A tile with the product type's icon (same icons as the floor plan emblems).
+ * Used in small lists instead of the photo, so no brand on a box shows up.
+ */
+export function typeTileHtml(item) {
+  return `<span class="type-tile" aria-hidden="true"><svg viewBox="0 0 24 24">${categoryIcon(item.category)}</svg></span>`;
 }
 
 let toastEl;

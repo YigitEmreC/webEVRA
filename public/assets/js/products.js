@@ -12,7 +12,7 @@
 import { products } from "../../data/catalog.js";
 import { findItem, formatMoney, toCents } from "./pricing.js";
 import { getOrder, extraQty, extrasCount, setExtraQty, customQty, setCustomQty, onOrderChange, MAX_QTY } from "./cart-store.js";
-import { orderPackage, minQty, CUSTOM_MAX_QTY } from "./builder-core.js";
+import { orderPackage, minQty, CUSTOM_MAX_QTY, SINGLE_ITEMS } from "./builder-core.js";
 import { escapeHtml, icon, mediaHtml, toast } from "./ui.js";
 import { switcherHtml, removeButtonHtml, bindSwitcher } from "./package-switcher.js";
 
@@ -176,6 +176,14 @@ export function initProducts() {
       el.querySelector("[data-included]").hidden = own || !included.has(id);
       footer.hidden = !choosing;
       if (!choosing) return;
+      if (SINGLE_ITEMS.includes(id)) {
+        // One main system per home: already in every package, never an extra.
+        if (footer.dataset.state !== "single") {
+          footer.dataset.state = "single";
+          footer.innerHTML = `<p class="qty-label">${icon("check")} Her pakette 1 adet var</p>`;
+        }
+        return;
+      }
       const qty = own ? customQty(id, order) : extraQty(id, order);
       const min = own ? minQty(order.custom, id) : 0;
       const max = own ? CUSTOM_MAX_QTY : MAX_QTY;

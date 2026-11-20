@@ -270,9 +270,14 @@ const esc = (v) => String(v).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
  * Emblems for the products placed in each room.
  * placements: { roomId: { productId: qty } }; lookup(id) → { name, category }.
  * Returns the markup for <g data-emblems> and the ids of rooms that have products.
+ * `size` is the emblem diameter in plan units (bigger on phones, for fingers).
  */
-export function emblemsSvg({ bedrooms, balconies = 0 }, placements, lookup) {
+export function emblemsSvg({ bedrooms, balconies = 0 }, placements, lookup, { size = EMBLEM } = {}) {
   const { rooms } = planLayout(bedrooms, balconies);
+  const STEP = size + 3;
+  const icon = size * 0.6;
+  const pad = (size - icon) / 2;
+  const half = size / 2;
   let html = "";
   const filled = [];
   for (const room of rooms) {
@@ -280,8 +285,8 @@ export function emblemsSvg({ bedrooms, balconies = 0 }, placements, lookup) {
     if (!entries.length) continue;
     filled.push(room.id);
     const { x, y, w, h } = room.area;
-    const cols = Math.max(1, Math.floor((w + STEP - EMBLEM) / STEP));
-    const rows = Math.max(1, Math.floor((h + STEP - EMBLEM) / STEP));
+    const cols = Math.max(1, Math.floor((w + STEP - size) / STEP));
+    const rows = Math.max(1, Math.floor((h + STEP - size) / STEP));
     const capacity = cols * rows;
     const shown = entries.length > capacity ? entries.slice(0, capacity - 1) : entries;
     const slot = (i) => [x + (i % cols) * STEP, y + Math.floor(i / cols) * STEP];
@@ -289,18 +294,18 @@ export function emblemsSvg({ bedrooms, balconies = 0 }, placements, lookup) {
       const item = lookup(id);
       const [ex, ey] = slot(i);
       html += `
-        <g class="fp-emblem" transform="translate(${r(ex)} ${r(ey)})" data-room="${room.id}">
+        <g class="fp-emblem" transform="translate(${r(ex)} ${r(ey)})" data-room="${room.id}" data-product="${esc(id)}" tabindex="0" role="button" aria-label="${esc(item.name)}: ne işe yarar?">
           <title>${qty} × ${esc(item.name)} (${esc(room.label)})</title>
-          <circle cx="${EMBLEM / 2}" cy="${EMBLEM / 2}" r="${EMBLEM / 2}"/>
-          <svg x="3.5" y="3.5" width="11" height="11" viewBox="0 0 24 24" class="fp-emblem-icon">${categoryIcon(item.category)}</svg>
-          ${qty > 1 ? `<circle class="fp-badge" cx="${EMBLEM - 1}" cy="2" r="5.5"/><text class="fp-badge-text" x="${EMBLEM - 1}" y="4.6">${qty > 9 ? "9+" : qty}</text>` : ""}
+          <circle cx="${half}" cy="${half}" r="${half}"/>
+          <svg x="${r(pad)}" y="${r(pad)}" width="${r(icon)}" height="${r(icon)}" viewBox="0 0 24 24" class="fp-emblem-icon">${categoryIcon(item.category)}</svg>
+          ${qty > 1 ? `<circle class="fp-badge" cx="${size - 1}" cy="2" r="${r(size * 0.3)}"/><text class="fp-badge-text" x="${size - 1}" y="${r(2 + size * 0.15)}">${qty > 9 ? "9+" : qty}</text>` : ""}
         </g>`;
     });
     if (entries.length > shown.length) {
       const [ex, ey] = slot(shown.length);
       html += `<g class="fp-emblem fp-more" transform="translate(${r(ex)} ${r(ey)})" data-room="${room.id}">
           <title>${entries.length - shown.length} ürün daha (${esc(room.label)})</title>
-          <circle cx="${EMBLEM / 2}" cy="${EMBLEM / 2}" r="${EMBLEM / 2}"/><text x="${EMBLEM / 2}" y="${EMBLEM / 2 + 3.5}">+${entries.length - shown.length}</text></g>`;
+          <circle cx="${half}" cy="${half}" r="${half}"/><text x="${half}" y="${r(half + size * 0.2)}">+${entries.length - shown.length}</text></g>`;
     }
   }
   return { html, filled };

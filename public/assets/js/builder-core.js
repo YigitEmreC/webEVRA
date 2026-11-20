@@ -17,6 +17,8 @@ import { settings } from "../../data/settings.js";
 
 export { CUSTOM_ID, CUSTOM_NAME, MAX_BALCONIES };
 export const CUSTOM_MAX_QTY = 20;
+/** One per home: the main system. Never offered as an extra or in the room lists. */
+export const SINGLE_ITEMS = ["hub"];
 
 export const sizeOf = (id) => homeSizes.find((s) => s.id === id) || null;
 export const heatingOf = (id) => heatingSystems.find((h) => h.id === id) || null;
@@ -62,6 +64,7 @@ export function cleanCustom(raw) {
   for (const r of requiredItems(size.id, heating.id)) {
     if ((qty.get(r.id) || 0) < r.min) qty.set(r.id, r.min);
   }
+  for (const id of SINGLE_ITEMS) if (qty.has(id)) qty.set(id, 1);
   const balconies = cleanBalconies(raw);
   const items = [...qty].map(([id, q]) => ({ id, qty: q }));
   return {

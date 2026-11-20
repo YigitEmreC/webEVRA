@@ -10,7 +10,7 @@ import { getOrder, setExtraQty, removeExtra, clearOrder, extrasCount, onOrderCha
 import { orderPackage, sizeOf, heatingOf, balconyText, roomSummary } from "./builder-core.js";
 import { findItem, formatMoney, toCents, depositCents } from "./pricing.js";
 import { settings } from "../../data/settings.js";
-import { escapeHtml, icon, mediaHtml } from "./ui.js";
+import { escapeHtml, icon, typeTileHtml } from "./ui.js";
 import { switcherHtml, removeButtonHtml, bindSwitcher } from "./package-switcher.js";
 
 export function initCartPage() {
@@ -128,7 +128,7 @@ export function initCartPage() {
           <p class="order-room">${escapeHtml(label)}</p>
           <ul class="pkg-items">
             ${items
-              .map(({ item, qty }) => `<li><span class="extra-media">${mediaHtml(item)}</span><a href="/products.html#product-${escapeHtml(item.id)}">${escapeHtml(item.name)}</a><span class="pkg-qty">${qty}×</span></li>`)
+              .map(({ item, qty }) => `<li>${typeTileHtml(item)}<a href="/products.html#product-${escapeHtml(item.id)}">${escapeHtml(item.name)}</a><span class="pkg-qty">${qty}×</span></li>`)
               .join("")}
           </ul>`
           )
@@ -142,7 +142,7 @@ export function initCartPage() {
     const name = escapeHtml(item.name);
     return `
       <li>
-        <span class="extra-media">${mediaHtml(item)}</span>
+        ${typeTileHtml(item)}
         <div class="extra-info">
           <a href="/products.html#product-${id}">${name}</a>
           <div class="extra-controls">

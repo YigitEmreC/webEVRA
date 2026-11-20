@@ -7,7 +7,7 @@ import { packages } from "../../data/catalog.js";
 import { findItem, formatMoney, packageValueCents, toCents } from "./pricing.js";
 import { getOrder, setPackage, onOrderChange } from "./cart-store.js";
 import { removeButtonHtml, bindSwitcher } from "./package-switcher.js";
-import { escapeHtml, icon, mediaHtml } from "./ui.js";
+import { escapeHtml, icon, typeTileHtml } from "./ui.js";
 
 const COMPACT_ITEMS = 4;
 
@@ -89,7 +89,7 @@ function contentsHtml(p, open) {
           .map(
             ({ item, qty }) => `
           <li>
-            <span class="extra-media">${mediaHtml(item)}</span>
+            ${typeTileHtml(item)}
             <span>${escapeHtml(item.name)}</span>
             <span class="pkg-qty">${qty}×</span>
           </li>`
