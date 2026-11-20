@@ -153,7 +153,7 @@ export function initProducts() {
             <a class="btn btn-primary" href="/cart.html">Devam et</a>
             ${
               own
-                ? `<a class="text-link" href="/packages.html#kendin-kur">Paketimi düzenle</a>`
+                ? `<a class="text-link" href="/packages.html?duzenle=1#kendin-kur">Paketimi düzenle</a>`
                 : `<a class="text-link" href="/packages.html#package-${escapeHtml(pkg.id)}">Paket detayları</a>`
             }
           </div>
@@ -164,7 +164,7 @@ export function initProducts() {
             <p class="muted">Önce bir paket seçin. Paketinizi seçtikten sonra bu sayfadan dilediğiniz ürünleri ekstra olarak ekleyebilirsiniz.</p>
           </div>
           <div class="mode-actions">
-            <a class="btn btn-primary" href="/packages.html">Paketleri incele</a>
+            <a class="btn btn-primary" href="/packages.html">Evime uygun paketi keşfet</a>
           </div>
         </div>`;
 

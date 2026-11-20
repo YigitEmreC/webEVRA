@@ -52,7 +52,7 @@ export function initCartPage() {
         </div>
         ${switcherHtml(pkg.id)}
         <p class="hint-small">Değiştirmek için bir pakete dokunun; ${pkg.custom ? "kendi paketiniz kayıtlı kalır." : "ekstra ürünleriniz korunur."} ${
-          pkg.custom ? `<a href="/packages.html#kendin-kur">Paketimi düzenle</a>` : `<a href="/packages.html#package-${escapeHtml(pkg.id)}">Paket detayları</a>`
+          pkg.custom ? `<a href="/packages.html?duzenle=1#kendin-kur">Paketimi düzenle</a>` : `<a href="/packages.html#package-${escapeHtml(pkg.id)}">Paket detayları</a>`
         }</p>
       </div>
 
@@ -133,7 +133,7 @@ export function initCartPage() {
           </ul>`
           )
           .join("")}
-        <a class="text-link" href="/packages.html#kendin-kur">Paketimi düzenle</a>
+        <a class="text-link" href="/packages.html?duzenle=1#kendin-kur">Paketimi düzenle</a>
       </div>`;
   }
 

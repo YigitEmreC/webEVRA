@@ -91,12 +91,11 @@ function contentsHtml(p, open) {
             ({ item, qty }) => `
           <li>
             <span class="extra-media">${mediaHtml(item)}</span>
-            <a href="/products.html?paket=${escapeHtml(p.id)}#product-${escapeHtml(item.id)}">${escapeHtml(item.name)}</a>
+            <span>${escapeHtml(item.name)}</span>
             <span class="pkg-qty">${qty}×</span>
           </li>`
           )
           .join("")}
       </ul>
-      <a class="text-link" href="/products.html?paket=${escapeHtml(p.id)}">Bu paketin ürünlerini incele →</a>
     </details>`;
 }

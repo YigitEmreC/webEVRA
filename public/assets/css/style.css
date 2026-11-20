@@ -981,7 +981,6 @@ body.has-order-bar .toast:not(.is-visible) { transform: translate(-50%, calc(100
 .floor-plan .fp-room:focus { outline: none; }
 .floor-plan .fp-room:focus-visible .fp-fill { stroke: var(--accent); stroke-width: 3; }
 .floor-plan .fp-room.is-selected .fp-fill, .floor-plan.is-interactive:not(.is-locked) .fp-room.is-selected:hover .fp-fill { fill: color-mix(in srgb, var(--accent) 60%, var(--surface)); stroke: var(--accent); stroke-width: 3.5; }
-.floor-plan .fp-room.has-items .fp-furn { display: none; }
 .floor-plan .fp-emblem circle { fill: var(--accent); }
 .floor-plan .fp-emblem-icon { fill: none; stroke: var(--accent-contrast); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
 .floor-plan .fp-emblem .fp-badge { fill: var(--text); stroke: var(--surface); stroke-width: 1.2; }
@@ -1004,3 +1003,20 @@ body.has-order-bar .toast:not(.is-visible) { transform: translate(-50%, calc(100
 .order-room + .pkg-items { margin-top: 0.35rem; }
 @media (max-width: 899px) { .builder-plan-hint { font-size: 0.72rem; margin-top: 0.15rem; } }
 @media (min-width: 1150px) { .builder-layout { grid-template-columns: minmax(0, 1fr) 28rem; } }
+
+/* Room editor under the plan (computers): the side column scrolls on its own */
+@media (min-width: 900px) {
+  .builder-side.is-editing { max-height: calc(100vh - var(--header-h) - 2rem); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+}
+.room-editor.in-side { padding: 0.85rem 0.9rem; border: 1.5px solid var(--accent); border-radius: var(--radius-sm); background: var(--surface); }
+.room-editor-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; }
+.room-editor-head h3 { margin: 0; }
+.room-editor-price { margin: 0.2rem 0 0.4rem; font-size: 0.9rem; color: var(--muted); }
+.room-editor-price strong { color: var(--text); }
+.room-editor.in-side .builder-item { grid-template-columns: 2.25rem minmax(0, 1fr) auto; gap: 0.5rem; padding: 0.45rem 0.55rem; }
+.room-editor.in-side .builder-item-info strong { font-size: 0.85rem; }
+.room-editor.in-side .builder-item-info .muted { font-size: 0.75rem; }
+.room-editor.in-side .builder-item-info .muted:not(:first-of-type) { display: none; }
+.room-editor.in-side .room-chips .chip { font-size: 0.78rem; padding: 0.2rem 0.55rem; }
+.room-editor.in-side .room-group .builder-items { padding: 0.45rem; }
+.room-editor.in-side .builder-nav { margin-top: 0.75rem; }

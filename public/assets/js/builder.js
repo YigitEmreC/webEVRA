@@ -4,12 +4,17 @@
 // From step 1 on, a bird's-eye floor plan of the home (floor-plan.js) stays
 // beside the steps (on phones: pinned at the top). Once the heating is chosen,
 // every room of the plan can be opened ("oda düzenleyici") to put products in
-// it; they show as small emblems on the room. Required products are placed in
+// it; they show as small emblems on the room. On computers the room editor
+// opens right under the plan (the page doesn't move); on phones it takes the
+// place of the step, below the pinned plan. Required products are placed in
 // their usual rooms automatically (data/builder.js → room).
 // "5+1 ve üzeri" doesn't build a package: it opens the planning form (#planning).
 // The price is calculated live (builder-core.js → customPrice, settings.js → pricing).
-// The draft is kept in this browser (localStorage "builder.v1") until it is chosen;
-// then it becomes the order's own package (cart-store.js → setCustom).
+// The draft lives in sessionStorage ("builder.v1"): it survives going to another
+// page, coming back and reloading, but a new visit starts from scratch. Once
+// chosen it becomes the order's own package (cart-store.js → setCustom); that one
+// is kept between visits and is only loaded into the builder on request
+// ("Paketimi düzenle" links use ?duzenle=1, or the "saved package" notice).
 
 import { products } from "../../data/catalog.js";
 import { homeSizes, heatingSystems } from "../../data/builder.js";
@@ -41,13 +46,25 @@ import { escapeHtml, icon, mediaHtml } from "./ui.js";
 const KEY = "builder.v1";
 const STEPS = ["Ev büyüklüğü", "Isıtma", "Sistem", "Ürünler", "Özet"];
 
+const FRESH = () => ({ step: 0, room: null, size: null, balconies: null, heating: null, items: [], placements: {}, chosen: false });
+const fromOrder = (custom) => ({ ...FRESH(), step: 4, ...custom, chosen: true });
+
 function loadDraft() {
   const order = getOrder();
-  if (order.custom) return { step: 4, room: null, ...order.custom };
   try {
-    const saved = JSON.parse(localStorage.getItem(KEY) || "null");
+    localStorage.removeItem(KEY); // drafts used to be kept forever; not any more
+  } catch {
+    /* storage blocked */
+  }
+  // "Paketimi düzenle" (from Siparişim / Ürünler): open the saved package.
+  if (new URLSearchParams(location.search).has("duzenle") && order.custom) return fromOrder(order.custom);
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(KEY) || "null");
     if (saved && typeof saved === "object") {
+      // Chosen in this visit and maybe changed on the Products page since: the order is newer.
+      if (saved.chosen && order.custom) return fromOrder(order.custom);
       return {
+        chosen: false,
         step: Math.min(Math.max(Number(saved.step) || 0, 0), 4),
         room: null,
         size: sizeOf(saved.size)?.id || null,
@@ -60,7 +77,7 @@ function loadDraft() {
   } catch {
     /* storage blocked or broken: start fresh */
   }
-  return { step: 0, room: null, size: null, balconies: null, heating: null, items: [], placements: {} };
+  return FRESH();
 }
 
 /** Small inline SVG of a product's category, like the emblems on the plan. */
@@ -80,7 +97,7 @@ export function initBuilder() {
   const save = () => {
     try {
       const { room, ...rest } = state;
-      localStorage.setItem(KEY, JSON.stringify(rest));
+      sessionStorage.setItem(KEY, JSON.stringify(rest));
     } catch {
       /* not saved; fine */
     }
@@ -108,6 +125,7 @@ export function initBuilder() {
           <figure class="builder-plan" data-plan></figure>
           <p class="builder-plan-hint muted" data-plan-hint></p>
         </div>
+        <div data-room-side></div>
         <div data-summary></div>
       </aside>
     </div>`;
@@ -117,6 +135,8 @@ export function initBuilder() {
   const planEl = root.querySelector("[data-plan]");
   const hintEl = root.querySelector("[data-plan-hint]");
   const summaryEl = root.querySelector("[data-summary]");
+  const roomSideEl = root.querySelector("[data-room-side]");
+  const phone = window.matchMedia("(max-width: 899px)");
   let planKey = null;
 
   function setQty(id, qty) {
@@ -202,19 +222,23 @@ export function initBuilder() {
     const ownPackage = getOrder().package === CUSTOM_ID;
     const showSummary = state.step >= 2 && !large;
     if (state.room && !canEditRooms()) state.room = null;
+    const editorInSide = Boolean(state.room) && !phone.matches;
+    const editorInPanel = Boolean(state.room) && phone.matches;
 
     stepsEl.innerHTML = `
         ${STEPS.map(
           (label, i) => `
-          <li class="${i === state.step && !state.room ? "is-current" : i < state.step ? "is-done" : ""}">
+          <li class="${i === state.step && !editorInPanel ? "is-current" : i < state.step ? "is-done" : ""}">
             <button type="button" data-goto="${i}" ${i > maxStep() ? "disabled" : ""} ${i === state.step ? 'aria-current="step"' : ""}>
               <span class="step-num">${i < state.step ? icon("check") : i + 1}</span><span class="step-label">${label}</span>
             </button>
           </li>`
         ).join("")}`;
-    panelEl.innerHTML = state.room ? roomEditor() : [stepSize, stepHeating, stepSystem, stepProducts, stepSummary][state.step](ownPackage);
+    panelEl.innerHTML = editorInPanel ? roomEditor() : [stepSize, stepHeating, stepSystem, stepProducts, stepSummary][state.step](ownPackage);
+    roomSideEl.innerHTML = editorInSide ? roomEditor(true) : "";
+    sideEl.classList.toggle("is-editing", editorInSide);
     sideEl.hidden = Boolean(large);
-    summaryEl.innerHTML = showSummary ? summaryHtml() : "";
+    summaryEl.innerHTML = showSummary && !editorInSide ? summaryHtml() : "";
     drawPlan();
 
     planning.hidden = !large;
@@ -281,10 +305,22 @@ export function initBuilder() {
       </div>`;
   }
 
+  /** On a fresh start, a package made on an earlier visit can be reopened. */
+  function savedNotice() {
+    const order = getOrder();
+    if (state.chosen || state.size || !order.custom) return "";
+    const pkg = customPackage(order.custom);
+    if (!pkg) return "";
+    return `
+      <div class="notice-inline saved-pkg">${icon("layers")}<span>Daha önce oluşturduğunuz bir paket kayıtlı: <strong>${escapeHtml(pkg.context)}</strong>, ${formatMoney(toCents(pkg.price))}.
+        <button type="button" class="link-button" data-load-saved>Kayıtlı paketimi düzenle</button></span></div>`;
+  }
+
   function stepSize() {
     const large = state.size && sizeOf(state.size).large;
     const balconyOptions = Array.from({ length: MAX_BALCONIES + 1 }, (_, n) => n);
     return `
+      ${savedNotice()}
       <h3>Eviniz kaç oda?</h3>
       <p class="muted">Oda sayısına göre krokinizi çiziyor ve ısıtma ürünlerinin adedini hazırlıyoruz.</p>
       <div class="choice-grid choice-grid-sizes">
@@ -388,7 +424,7 @@ export function initBuilder() {
     return `<span class="builder-item-rooms">${icon("layers")} ${parts.join(" · ")}${unplaced > 0 ? ` · odası seçilmemiş ${unplaced}` : ""}</span>`;
   }
 
-  function roomEditor() {
+  function roomEditor(inSide = false) {
     const room = rooms().find((r) => r.id === state.room);
     const here = Object.entries(state.placements[room.id] || {})
       .map(([id]) => findItem(id))
@@ -399,10 +435,15 @@ export function initBuilder() {
       groups.get(p.category).push(p);
     }
     return `
-      <div class="room-editor">
-        <button type="button" class="link-button" data-close-room>← ${STEPS[state.step]} adımına dön</button>
-        <h3>${escapeHtml(room.label)}</h3>
-        <p class="muted">Bu odaya koymak istediğiniz ürünleri seçin; krokide odanın üzerinde küçük simgeler olarak görünür. Fiyat her değişiklikte güncellenir.</p>
+      <div class="room-editor${inSide ? " in-side" : ""}">
+        ${
+          inSide
+            ? `<div class="room-editor-head"><h3>${escapeHtml(room.label)}</h3><button type="button" class="link-button" data-close-room>Kapat ✕</button></div>
+               <p class="room-editor-price">Paket fiyatı <strong>${formatMoney(toCents(customPrice(state.items).total))}</strong></p>`
+            : `<button type="button" class="link-button" data-close-room>← ${STEPS[state.step]} adımına dön</button>
+               <h3>${escapeHtml(room.label)}</h3>
+               <p class="muted">Bu odaya koymak istediğiniz ürünleri seçin; krokide odanın üzerinde küçük simgeler olarak görünür. Fiyat her değişiklikte güncellenir.</p>`
+        }
         ${roomChips()}
         <h4 class="list-title">Bu odada</h4>
         ${
@@ -524,11 +565,20 @@ export function initBuilder() {
     if (!canEditRooms()) return;
     state.room = id;
     draw();
+    revealPanel();
+  }
+
+  /**
+   * Phones only: the step / room editor sits under the pinned plan. Scroll only
+   * when its top is hidden behind the plan or far below; otherwise stay put.
+   * (On computers nothing moves: the room editor opens under the plan.)
+   */
+  function revealPanel() {
+    if (!phone.matches) return;
+    const covered = sideEl.getBoundingClientRect().bottom;
     const top = panelEl.getBoundingClientRect().top;
-    const covered = sideEl.getBoundingClientRect().bottom; // on phones the plan is pinned above the panel
-    if (top < covered || top > window.innerHeight * 0.6) {
-      window.scrollBy({ top: top - Math.max(covered, 80) - 8, behavior: "smooth" });
-    }
+    if (top >= covered - 4 && top < window.innerHeight * 0.75) return;
+    window.scrollBy({ top: top - covered - 8, behavior: "smooth" });
   }
 
   // ── Clicks ────────────────────────────────────────────────────────────────
@@ -559,7 +609,7 @@ export function initBuilder() {
     if (e.target.closest("[data-close-room]")) {
       state.room = null;
       draw();
-      root.scrollIntoView({ block: "start", behavior: "smooth" });
+      revealPanel();
       return;
     }
     if (balconies) {
@@ -594,7 +644,15 @@ export function initBuilder() {
       draw();
       return;
     }
+    if (e.target.closest("[data-load-saved]")) {
+      state = fromOrder(getOrder().custom);
+      planKey = null;
+      draw();
+      return;
+    }
     if (e.target.closest("[data-finish]")) {
+      state.chosen = true;
+      save();
       setCustom(custom());
       location.href = "/cart.html";
     }
@@ -608,6 +666,9 @@ export function initBuilder() {
       openRoom(roomEl.dataset.room);
     }
   });
+
+  // Switching between phone and computer layout moves the room editor.
+  phone.addEventListener?.("change", draw);
 
   draw();
 }

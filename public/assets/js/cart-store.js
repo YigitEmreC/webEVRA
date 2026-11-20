@@ -124,7 +124,7 @@ export function removePackage() {
 /** After the request was sent: everything goes, including the own package. */
 export function clearOrder() {
   try {
-    localStorage.removeItem("builder.v1"); // the builder's draft (builder.js)
+    sessionStorage.removeItem("builder.v1"); // the builder's draft (builder.js)
   } catch {
     /* storage unavailable */
   }
