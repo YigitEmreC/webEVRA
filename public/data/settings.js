@@ -52,6 +52,52 @@ export const settings = {
     vat: 0.2,            // %20 KDV
   },
 
+  // Monthly service plans shown on the Servisler page (#abonelik).
+  // price: monthly price in TL, 0 = free, null = not decided yet ("Fiyat yakında").
+  // popular: true shows the "En çok tercih edilen" badge.
+  subscriptions: [
+    {
+      id: "temel",
+      name: "Temel",
+      price: 0,
+      text: "Kurulumla birlikte gelir.",
+      features: ["Uygulama ve duvar ekranı", "Gece otomatik güncellemeler", "E-posta ile destek"],
+    },
+    {
+      id: "guvence",
+      name: "Güvence",
+      price: 340, // TL / ay
+      popular: true,
+      text: "Çoğu ev için doğru seçim.",
+      features: ["Temel'deki her şey", "Hızlı servis: uzaktan, aynı gün", "Yılda 1 bakım ziyareti + pil değişimi", "Sistem yedekleme"],
+    },
+    {
+      id: "premium",
+      name: "Premium",
+      price: 600, // TL / ay
+      text: "Kameralı ve büyük evler için.",
+      features: ["Güvence'deki her şey", "Ekstra ürünlerde %10 indirim", "Taşınırken söküp takma ücretsiz", "Öncelikli WhatsApp desteği", "Kamera kayıtlarının yedeği", "Öncelikli ziyaret (48 saat)", "Yılda 2 bakım ziyareti"],
+    },
+  ],
+
+  // Comparison table (home page + Servisler → #abonelik). One row per perk;
+  // per plan: true = ✓, false = ✗, "gold" = gold ✓ (highlighted perk), or a
+  // short text such as "Yılda 2".
+  subscriptionFeatures: [
+    { label: "Uygulama ve duvar ekranı", temel: true, guvence: true, premium: true },
+    { label: "Gece otomatik güncellemeler", temel: true, guvence: true, premium: true },
+    { label: "İnternet kesilse de çalışan sistem", temel: true, guvence: true, premium: true },
+    { label: "E-posta ile destek", temel: true, guvence: true, premium: true },
+    { label: "Hızlı servis: uzaktan, aynı gün", temel: false, guvence: true, premium: true },
+    { label: "Sistem yedekleme", temel: false, guvence: true, premium: true },
+    { label: "Bakım ziyareti ve pil değişimi", temel: false, guvence: "Yılda 1", premium: "Yılda 2" },
+    { label: "Kamera kayıtlarının yedeği", temel: false, guvence: false, premium: true },
+    { label: "Öncelikli ziyaret (48 saat)", temel: false, guvence: false, premium: true },
+    { label: "Ekstra ürünlerde %10 indirim", temel: false, guvence: false, premium: "gold" },
+    { label: "Taşınırken söküp takma ücretsiz", temel: false, guvence: false, premium: "gold" },
+    { label: "Öncelikli WhatsApp desteği", temel: false, guvence: false, premium: "gold" },
+  ],
+
   // Optional spam protection for the contact and support forms.
   // Paste your Cloudflare Turnstile *site key* here (see README → Spam protection).
   turnstileSiteKey: "0x4AAAAAAGJE1nJAyKWWO1ZE",

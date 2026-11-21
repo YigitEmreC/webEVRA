@@ -77,59 +77,145 @@
       </div>
     </section>
 
+    <!-- ===== BRAND STRIP ===== -->
+    <section class="brand-strip" id="brand-strip" aria-labelledby="brand-strip-title">
+      <div class="container">
+        <p class="eyebrow center" id="brand-strip-title">Evinizdeki cihazlarla çalışır</p>
+        <ul class="protocol-list" data-protocols></ul>
+      </div>
+      <div data-brand-rows></div>
+      <p class="brand-note container">2.000'den fazla entegrasyon. Markalar Evra'nın ortağı değildir; uyumluluğu keşifte birlikte kontrol ediyoruz.</p>
+    </section>
+
+    <!-- ===== INTERACTIVE HOUSE (assets/js/showcase.js; dots: public/data/showcase.js) ===== -->
+    <section class="section showcase-dark" id="house-tour">
+      <svg class="sx-lines" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M-40 220C320 100 540 480 900 340S1380 80 1500 220"/>
+        <path d="M-60 700C260 520 620 860 980 680S1400 520 1500 620"/>
+      </svg>
+      <div class="container">
+        <div class="section-head center">
+          <p class="eyebrow">Tek sistem</p>
+          <h2>Bütün ev. Tek kontrol.</h2>
+          <p class="lead">Işık, ısıtma, güvenlik ve perdeler aynı sistemde. Noktalara dokunun.</p>
+        </div>
+        <div class="house-stage" data-house-stage>
+          <div class="house-card" data-house-card hidden aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ROOM BY ROOM SLIDER (assets/js/showcase.js; rooms: public/data/showcase.js → roomTour) ===== -->
+    <section class="section room-tour-section" id="room-tour">
+      <div class="container">
+        <div class="section-head-row">
+          <div>
+            <p class="eyebrow">Oda oda</p>
+            <h2>Her odada ne işe yarar?</h2>
+            <p class="lead">Kaydırın; her odada hangi cihaz ne yapıyor, görün.</p>
+          </div>
+          <div class="room-arrows">
+            <button type="button" class="room-arrow" data-room-prev aria-label="Önceki oda">←</button>
+            <button type="button" class="room-arrow" data-room-next aria-label="Sonraki oda">→</button>
+          </div>
+        </div>
+        <div class="roomtour-chips" data-room-chips role="group" aria-label="Odalar"></div>
+      </div>
+      <div class="room-track" data-room-track tabindex="0" aria-label="Odalar, sağa sola kaydırın"></div>
+    </section>
+
     <!-- ===== COMPANY DETAILS ===== -->
-    <section class="section">
+    <section class="section vivid about-vivid">
       <div class="container split split-center">
         <div>
           <p class="eyebrow">Biz kimiz</p>
           <h2>Kısaca Evra</h2>
-          <p>Evra, akıllı ev sistemini her evin konusu yapmak için kuruldu. Mevcut dairenizdeki kombiye, peteklere, ışıklara ve kapılara takılan kablosuz cihazlarla evinizi tadilatsız akıllandırıyoruz. Kiracıysanız taşınırken sistemi de yanınızda götürebilirsiniz.</p>
-          <p>Farkımız kurulumdan sonra başlar. Sistemimiz dünyanın en yaygın açık kaynaklı ev otomasyon platformu Home Assistant üzerine kurulu; verileriniz evinizde kalır ve herhangi bir güvenlik ihlali yoktur. Kullanılan ürünler bir katalogda yer alır, bir sorun olduğunda da bize kolayca ulaşabilirsiniz.</p>
+          <p class="lead">Evinizi duvar kırmadan, tek ziyarette akıllı yapıyoruz.</p>
+          <ul class="tick-list about-ticks">
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Kombi, petek, ışık ve kapılara takılan kablosuz cihazlar</li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Kiracıysanız sistem taşınırken sizinle gelir</li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Home Assistant tabanlı: verileriniz evinizde kalır</li>
+          </ul>
           <a class="text-link" href="/information.html">Hakkımızda daha fazlası →</a>
         </div>
-        <dl class="stats">
-          <div class="stat"><dt>Kuruluş</dt><dd>2026</dd></div>
-          <div class="stat"><dt>Hizmet bölgesi</dt><dd>İstanbul</dd></div>
-          <div class="stat"><dt>Kurulum süresi</dt><dd>Tek ziyaret</dd></div>
-          <div class="stat"><dt>Desteklenen cihaz</dt><dd>34</dd></div>
+        <dl class="vivid-stats">
+          <div class="c-violet"><span class="vivid-stat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="5"/></svg></span><dd>2026</dd><dt>Kuruluş</dt></div>
+          <div class="c-teal"><span class="vivid-stat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.3-7-12a7 7 0 0 1 14 0c0 5.7-7 12-7 12Z"/><circle cx="12" cy="9" r="2.5"/></svg></span><dd>İstanbul</dd><dt>Hizmet bölgesi</dt></div>
+          <div class="c-amber"><span class="vivid-stat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><dd>Tek ziyaret</dd><dt>Kurulum süresi</dt></div>
+          <div class="c-coral"><span class="vivid-stat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></span><dd>34</dd><dt>Desteklenen cihaz</dt></div>
         </dl>
       </div>
     </section>
 
     <!-- ===== WHAT WE OFFER ===== -->
-    <section class="section section-alt">
+    <section class="section section-alt vivid">
       <div class="container">
         <div class="section-head">
           <p class="eyebrow">Neler sunuyoruz</p>
           <h2>Akıllı bir ev için ihtiyacınız olan her şey</h2>
-          <p class="lead">Cihaz seçiminden kuruluma, eğitimden kurulum sonrası desteğe kadar tek muhatap.</p>
+          <p class="lead">Cihaz seçiminden kurulum sonrası desteğe kadar tek muhatap.</p>
         </div>
-        <div class="grid grid-4">
-          <a class="card feature" href="/packages.html#kendin-kur">
-            <span class="feature-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></span>
+        <div class="offer-grid">
+          <a class="offer-card c-violet" href="/packages.html#kendin-kur">
+            <span class="offer-art" aria-hidden="true"><svg viewBox="0 0 200 120">
+              <rect x="40" y="18" width="120" height="84" rx="6" fill="#fff" opacity=".95"/><path d="M40 60h120M100 18v84M130 60v42" stroke="#7a5be0" stroke-width="4"/>
+              <circle cx="70" cy="40" r="8" fill="#f5b544"/><circle cx="125" cy="38" r="8" fill="#4fd1bd"/><circle cx="70" cy="82" r="8" fill="#e0614f"/><circle cx="148" cy="82" r="8" fill="#3d6fd9"/>
+              <path d="M150 104l14-14 6 6-14 14Z" fill="#1b1405"/></svg></span>
             <h3>Kendin kur</h3>
-            <p class="muted">Evinizi anlatın, sensörden ampule ürünleri oda oda seçin; paketinizin fiyatını anında görün.</p>
+            <p>Birkaç soruya cevap verin, ürünleri oda oda biz önerelim.</p>
             <span class="more">Paketini oluştur →</span>
           </a>
-          <a class="card feature" href="/packages.html">
-            <span class="feature-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg></span>
-            <h3>Paketler</h3>
-            <p class="muted">Evinize göre kendi paketinizi oluşturun ya da Önerilen Ev, Yaşlı ve Bebek paketlerimizden birini seçin.</p>
-            <span class="more">Hazır paketleri gör →</span>
+          <a class="offer-card c-teal" href="/packages.html">
+            <span class="offer-art" aria-hidden="true"><svg viewBox="0 0 200 120">
+              <path d="M60 50 100 32l40 18-40 18Z" fill="#fff"/><path d="M60 50v40l40 18V68Z" fill="#e8fbf7"/><path d="M140 50v40l-40 18V68Z" fill="#c5f1e8"/>
+              <path d="M74 44l40-18" stroke="#1fa392" stroke-width="5"/><circle cx="150" cy="34" r="16" fill="#f5b544"/><path d="m143 34 5 5 9-10" stroke="#1b1405" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg></span>
+            <h3>Hazır paketler</h3>
+            <p>Önerilen Ev, Güvenlik, Yaşlı, Bebek ve Evcil Hayvan.</p>
+            <span class="more">Paketleri gör →</span>
           </a>
-          <a class="card feature" href="/services.html">
-            <span class="feature-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M9 15.5l2 2 4-4"/></svg></span>
+          <a class="offer-card c-amber" href="/services.html">
+            <span class="offer-art" aria-hidden="true"><svg viewBox="0 0 200 120">
+              <path d="M56 62 100 28l44 34v44H56Z" fill="#fff"/><rect x="88" y="74" width="24" height="32" rx="3" fill="#e39a1f"/><rect x="66" y="66" width="16" height="14" rx="2" fill="#ffd76a"/><rect x="118" y="66" width="16" height="14" rx="2" fill="#ffd76a"/>
+              <path d="M150 40a12 12 0 0 0-16 16l-18 18 6 6 18-18a12 12 0 0 0 16-16l-7 7-6-2-2-6Z" fill="#1b1405"/></svg></span>
             <h3>Kurulum</h3>
-            <p class="muted">İlk ziyarette planlama yapılır ve ikinci ziyarette kurulum gerçekleştirilir.</p>
+            <p>Kendi teknisyenimiz, tek ziyarette, duvar kırmadan.</p>
             <span class="more">Nasıl çalışır →</span>
           </a>
-          <a class="card feature" href="/support.html">
-            <span class="feature-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="m5.6 5.6 3.6 3.6M14.8 14.8l3.6 3.6M18.4 5.6l-3.6 3.6M9.2 14.8l-3.6 3.6"/></svg></span>
+          <a class="offer-card c-coral" href="/support.html">
+            <span class="offer-art" aria-hidden="true"><svg viewBox="0 0 200 120">
+              <rect x="42" y="26" width="86" height="50" rx="14" fill="#fff"/><path d="M62 76l-6 16 22-16" fill="#fff"/><path d="M60 44h50M60 58h34" stroke="#e0614f" stroke-width="5" stroke-linecap="round"/>
+              <rect x="100" y="56" width="62" height="40" rx="12" fill="#1b1405"/><path d="M146 96l8 12-20-12" fill="#1b1405"/><circle cx="118" cy="76" r="4" fill="#fff"/><circle cx="131" cy="76" r="4" fill="#fff"/><circle cx="144" cy="76" r="4" fill="#fff"/></svg></span>
             <h3>Destek</h3>
-            <p class="muted">WhatsApp destek, uzaktan arıza tespiti ve evra Güvence bakım planı.</p>
+            <p>Hızlı servis, uzaktan arıza tespiti ve bakım planları.</p>
             <span class="more">Yardım al →</span>
           </a>
         </div>
+      </div>
+    </section>
+
+    <!-- ===== WALL PANEL DEMO (assets/js/showcase.js) ===== -->
+    <section class="section showcase-dark" id="tablet-section">
+      <div class="container">
+        <div class="section-head center">
+          <p class="eyebrow">Uygulama ve duvar ekranı</p>
+          <h2>Her şey <span class="hl">tek ekranda</span></h2>
+          <p class="lead">Aşağıdaki ekran gerçek gibi çalışır: bir sahneye ya da odaya dokunun.</p>
+        </div>
+        <div class="tablet" id="tablet-demo">
+          <div class="tablet-screen" data-tablet-screen></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== A DAY WITH EVRA (assets/js/showcase.js; texts: public/data/showcase.js) ===== -->
+    <section class="section showcase-dark showcase-dark-2">
+      <div class="container">
+        <div class="section-head center">
+          <p class="eyebrow">Bir gün boyunca</p>
+          <h2>Evra'lı <span class="hl">bir gün</span></h2>
+          <p class="lead">Sabahtan geceye eviniz kendi kendine çalışır.</p>
+        </div>
+        <div class="day-tour" id="day-tour"></div>
       </div>
     </section>
 
@@ -145,6 +231,20 @@
           <a class="btn btn-primary" href="/packages.html#kendin-kur">Kendi paketini oluştur</a>
         </div>
         <div class="grid package-grid" id="featured-packages"></div>
+      </div>
+    </section>
+
+    <!-- ===== SUBSCRIPTIONS (assets/js/plans.js; plans + rows: settings.js) ===== -->
+    <section class="section sx-navy">
+      <span class="sx-orb sx-orb-a" aria-hidden="true"></span>
+      <div class="container" style="position:relative;z-index:1">
+        <div class="section-head center">
+          <p class="eyebrow">Abonelik</p>
+          <h2>Ücretsiz başlayın, <span class="hl">ihtiyacınız kadar</span> ekleyin</h2>
+          <p class="lead">Cihazlar bir kez alınır. Bakım ve hızlı servis isterseniz aylık planla bizden.</p>
+        </div>
+        <div data-plan-table data-plan-cta="/services.html#abonelik"></div>
+        <p class="note center"><a class="text-link" href="/services.html#abonelik">Planların ayrıntıları →</a></p>
       </div>
     </section>
 

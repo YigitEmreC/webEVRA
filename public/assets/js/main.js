@@ -6,11 +6,13 @@ import { ensureToast } from "./ui.js";
 import { initProducts } from "./products.js";
 import { initPackages } from "./packages.js";
 import { initBuilder } from "./builder.js";
+import { initShowcase } from "./showcase.js";
+import { initPlans } from "./plans.js";
 import { initCartPage } from "./cart-page.js";
 import { initForms } from "./forms.js";
 import { initFaq } from "./faq.js";
 
-const features = [initTheme, initNav, initActiveLink, initCartBadge, initYear, ensureToast, initProducts, initPackages, initBuilder, initCartPage, initForms, initFaq, initOrderSuccess];
+const features = [initTheme, initNav, initActiveLink, initCartBadge, initYear, ensureToast, initProducts, initPackages, initBuilder, initShowcase, initPlans, initCartPage, initForms, initFaq, initOrderSuccess];
 
 for (const init of features) {
   try {

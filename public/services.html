@@ -45,147 +45,243 @@
     </div>
   </header>
 
-  <main id="main" class="svc">
+  <main id="main" class="svc sx">
+    <!-- Decorative glowing lines behind the page (Selora-style) -->
+    <svg class="sx-lines" viewBox="0 0 1440 2400" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M-40 260C320 140 540 520 900 380S1380 120 1500 260"/>
+      <path d="M-60 1180C260 980 620 1340 980 1160S1400 980 1500 1080"/>
+      <path d="M-40 2000C360 1820 700 2160 1060 1980S1420 1860 1500 1920"/>
+    </svg>
+
     <!-- ===== HERO ===== -->
-    <section class="svc-hero">
-      <div class="container svc-hero-inner">
+    <section class="sx-hero">
+      <span class="sx-orb sx-orb-a" aria-hidden="true"></span>
+      <span class="sx-orb sx-orb-b" aria-hidden="true"></span>
+      <div class="container sx-hero-inner">
         <div>
           <p class="eyebrow">Servisler</p>
-          <h1>Kurulumdan bakıma, hep yanınızdayız.</h1>
-          <p class="lead">Siz hiçbir şey hazırlamayın; gelip kuralım, anlatalım, sonra da arkasında duralım.</p>
-          <ul class="svc-facts">
-            <li class="c-blue"><strong>1 gün</strong><span>kurulum</span></li>
-            <li class="c-teal"><strong>2–3 saat</strong><span>evde çalışma</span></li>
-            <li class="c-amber"><strong>7 gün</strong><span>içinde bakım</span></li>
+          <h1>Akıllı eviniz, <span class="hl">baştan sona</span> bizde.</h1>
+          <p class="lead">Tasarım, kurulum ve sonrasındaki bakım: tek ekip, tek muhatap.</p>
+          <div class="actions">
+            <a class="btn btn-glow" href="/contact.html">Ücretsiz keşif iste</a>
+            <a class="btn btn-ghost" href="#abonelik">Planları karşılaştır</a>
+          </div>
+          <ul class="sx-facts">
+            <li><strong>1 gün</strong><span>kurulum</span></li>
+            <li><strong>2–3 saat</strong><span>evde çalışma</span></li>
+            <li><strong>7 gün</strong><span>içinde bakım</span></li>
           </ul>
         </div>
-        <!-- Illustration: a house with its smart devices -->
-        <svg class="svc-hero-art" viewBox="0 0 360 280" role="img" aria-label="Akıllı cihazlarıyla bir ev">
-          <circle class="art-blob" cx="180" cy="150" r="118"/>
-          <path class="art-wave" d="M136 58a62 62 0 0 1 88 0M150 72a40 40 0 0 1 60 0M164 86a18 18 0 0 1 32 0"/>
-          <path class="art-roof" d="M92 150 180 88l88 62"/>
-          <rect class="art-house" x="108" y="140" width="144" height="100" rx="6"/>
-          <rect class="art-window glow" x="126" y="160" width="40" height="34" rx="4"/>
-          <path class="art-frame" d="M146 160v34M126 177h40"/>
-          <rect class="art-door" x="192" y="178" width="38" height="62" rx="4"/>
-          <circle class="art-knob" cx="222" cy="210" r="3"/>
-          <rect class="art-ground" x="60" y="238" width="240" height="6" rx="3"/>
-          <g class="art-badge c-green" transform="translate(52 120)"><circle r="22"/><path d="M0-11-9-7v6c0 6 4 10 9 12 5-2 9-6 9-12v-6Z"/></g>
-          <g class="art-badge c-amber" transform="translate(300 118)"><circle r="22"/><path d="M3 4V-9a3 3 0 0 0-6 0V4a6 6 0 1 0 6 0Z"/></g>
-          <g class="art-badge c-violet" transform="translate(304 200)"><circle r="20"/><rect x="-10" y="-7" width="14" height="14" rx="3"/><path d="m4-3 7-4v14l-7-4Z"/></g>
-          <g class="art-badge c-teal" transform="translate(58 204)"><circle r="20"/><path d="M-8 8 3-3M6-10a6 6 0 0 0-8 8l-7 7 3 3 7-7a6 6 0 0 0 8-8l-4 4-3-1-1-3Z"/></g>
-        </svg>
+        <div class="sx-hero-art" aria-hidden="true">
+          <svg viewBox="0 0 420 360">
+            <defs>
+              <radialGradient id="sx-core" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffd27a"/><stop offset=".6" stop-color="#f59e2b"/><stop offset="1" stop-color="#f59e2b" stop-opacity="0"/></radialGradient>
+              <linearGradient id="sx-beam" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5b8cff" stop-opacity="0"/><stop offset=".5" stop-color="#7aa2ff"/><stop offset="1" stop-color="#f5b544"/></linearGradient>
+            </defs>
+            <circle cx="210" cy="180" r="150" fill="none" stroke="#24345f" stroke-width="1.5"/>
+            <circle cx="210" cy="180" r="105" fill="none" stroke="#2c3f73" stroke-width="1.5" stroke-dasharray="4 8"/>
+            <g class="sx-beams" stroke="url(#sx-beam)" stroke-width="2.5" stroke-linecap="round">
+              <path d="M70 90 186 166"/><path d="M350 84 236 164"/><path d="M60 268 184 196"/><path d="M362 270 238 196"/><path d="M210 22v120"/><path d="M210 338V222"/>
+            </g>
+            <circle cx="210" cy="180" r="72" fill="url(#sx-core)" opacity=".55"/>
+            <rect x="170" y="140" width="80" height="80" rx="20" fill="#0d1530" stroke="#f5b544" stroke-width="3"/>
+            <path d="M190 186 210 168l20 18v18h-40Z" fill="none" stroke="#f5b544" stroke-width="3.5" stroke-linejoin="round"/>
+            <g class="sx-nodes">
+              <g transform="translate(70 90)"><circle r="24"/><path d="M-6 6h12M-4 10h8M0-12a8 8 0 0 0-5 14v1h10v-1A8 8 0 0 0 0-12Z"/></g>
+              <g transform="translate(350 84)"><circle r="24"/><path d="M0-12-9-8v6c0 6 4 10 9 12 5-2 9-6 9-12v-6Z"/></g>
+              <g transform="translate(60 268)"><circle r="24"/><path d="M3 4V-9a3 3 0 0 0-6 0V4a6 6 0 1 0 6 0Z"/></g>
+              <g transform="translate(362 270)"><circle r="24"/><rect x="-10" y="-7" width="14" height="14" rx="3"/><path d="m4-3 7-4v14l-7-4Z"/></g>
+              <g transform="translate(210 22)"><circle r="20"/><path d="M-8-6h16M-6-6v12M6-6v12M-6 0h12"/></g>
+              <g transform="translate(210 338)"><circle r="20"/><path d="M0-10s7 7.5 7 12a7 7 0 0 1-14 0c0-4.5 7-12 7-12Z"/></g>
+            </g>
+          </svg>
+        </div>
       </div>
     </section>
 
-    <!-- ===== INSTALLATION ===== -->
-    <section class="section" id="installation">
+    <!-- ===== THE JOURNEY: 3 PHASES ===== -->
+    <section class="section sx-journey">
       <div class="container">
-        <div class="section-head">
-          <p class="eyebrow">Kurulum</p>
-          <h2>5 adımda akıllı ev</h2>
-          <p class="lead">Hazırlamanız gereken hiçbir şey yok.</p>
+        <div class="section-head center">
+          <p class="eyebrow">Bütün yolculukta</p>
+          <h2>Tek ortak, üç aşama</h2>
+          <p class="lead">Evinizi tanımaktan yıllarca sorunsuz çalışmasına kadar.</p>
         </div>
-        <ol class="svc-timeline">
-          <li class="c-blue">
-            <span class="svc-dot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16M6 16l9-9 3 3-9 9H6v-3Z"/><path d="m13 9 3 3"/></svg></span>
-            <span class="svc-num">1</span>
-            <h3>Planlama</h3>
-            <p>Online ya da evinizde birlikte planlıyoruz.</p>
-            <span class="svc-time">25–30 dk</span>
-          </li>
-          <li class="c-violet">
-            <span class="svc-dot"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></span>
-            <span class="svc-num">2</span>
-            <h3>Teklif</h3>
-            <p>Planı fiyatlandırır, onayınızı alırız.</p>
-            <span class="svc-time">~2 gün</span>
-          </li>
-          <li class="c-amber">
-            <span class="svc-dot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></span>
-            <span class="svc-num">3</span>
-            <h3>Hazırlık</h3>
-            <p>Ürünleri hazırlar, kurulum gününü ayarlarız.</p>
-            <span class="svc-time">2–3 gün</span>
-          </li>
-          <li class="c-teal">
-            <span class="svc-dot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4 2.6-2.6Z"/></svg></span>
-            <span class="svc-num">4</span>
+
+        <article class="sx-phase" id="tasarim">
+          <div class="sx-phase-art c-violet" aria-hidden="true">
+            <svg viewBox="0 0 320 220">
+              <rect x="40" y="30" width="240" height="160" rx="10" fill="#101a38" stroke="#7a5be0" stroke-width="2"/>
+              <path d="M40 110h240M150 30v160M220 110v80" stroke="#7a5be0" stroke-width="3"/>
+              <g fill="#a993f5"><circle cx="90" cy="70" r="7"/><circle cx="200" cy="66" r="7"/><circle cx="90" cy="150" r="7"/><circle cx="252" cy="150" r="7"/><circle cx="186" cy="150" r="7"/></g>
+              <path d="M58 202h204" stroke="#f5b544" stroke-width="3" stroke-dasharray="2 8" stroke-linecap="round"/>
+              <rect x="226" y="18" width="70" height="88" rx="8" fill="#0b1226" stroke="#f5b544" stroke-width="2"/>
+              <path d="M238 38h46M238 56h46M238 74h30" stroke="#f5b544" stroke-width="3" stroke-linecap="round"/><path d="m238 92 6 6 12-12" stroke="#5fcf8d" stroke-width="3" fill="none"/>
+            </svg>
+          </div>
+          <div class="sx-phase-text">
+            <span class="sx-phase-num">01</span>
+            <h3>Tasarım</h3>
+            <p class="lead">Evinize gelir ya da online görüşür, planı birlikte çıkarırız.</p>
+            <ul class="sx-list">
+              <li>Evinizi ve mevcut cihazlarınızı inceleriz</li>
+              <li>Oda oda cihaz, ağ ve otomasyon planı</li>
+              <li>Net fiyat ve tarih: sürpriz yok</li>
+            </ul>
+            <span class="sx-chip">25–30 dk görüşme</span>
+          </div>
+        </article>
+
+        <article class="sx-phase is-flip" id="installation">
+          <div class="sx-phase-art c-teal" aria-hidden="true">
+            <svg viewBox="0 0 320 220">
+              <path d="M60 110 160 40l100 70v90H60Z" fill="#101a38" stroke="#1fa392" stroke-width="3" stroke-linejoin="round"/>
+              <rect x="96" y="128" width="40" height="34" rx="4" fill="#ffd76a"/><rect x="176" y="140" width="40" height="60" rx="4" fill="#1fa392"/>
+              <circle cx="214" cy="80" r="16" fill="#0b1226" stroke="#4fd1bd" stroke-width="2"/><path d="M206 80l6 6 10-10" stroke="#4fd1bd" stroke-width="3" fill="none"/>
+              <path d="M270 70a18 18 0 0 0-24 24l-28 28 10 10 28-28a18 18 0 0 0 24-24l-10 10-9-3-3-9Z" fill="#f5b544"/>
+              <g stroke="#4fd1bd" stroke-width="2" opacity=".6"><path d="M40 210h240"/></g>
+            </svg>
+          </div>
+          <div class="sx-phase-text">
+            <span class="sx-phase-num">02</span>
             <h3>Kurulum</h3>
-            <p>Teknisyenimiz cihazları tek tek kurar.</p>
-            <span class="svc-time">~3 saat</span>
-          </li>
-          <li class="c-green">
-            <span class="svc-dot"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="m9.5 12 2 2 3.5-4"/></svg></span>
-            <span class="svc-num">5</span>
-            <h3>Teslim</h3>
-            <p>Uygulamayı birlikte dener, size teslim ederiz.</p>
-            <span class="svc-time">~30 dk</span>
-          </li>
-        </ol>
+            <p class="lead">Kendi teknisyenimiz tek ziyarette kurar, duvar kırmadan.</p>
+            <ul class="sx-list">
+              <li>Temiz kurulum, kablo ve toz yok</li>
+              <li>Her cihazı tek tek ayarlar, deneriz</li>
+              <li>Uygulamayı ve duvar ekranını birlikte kullanırız</li>
+            </ul>
+            <span class="sx-chip">Ortalama 2–3 saat</span>
+          </div>
+        </article>
+
+        <article class="sx-phase" id="aftercare">
+          <div class="sx-phase-art c-amber" aria-hidden="true">
+            <svg viewBox="0 0 320 220">
+              <rect x="110" y="20" width="100" height="180" rx="18" fill="#101a38" stroke="#e39a1f" stroke-width="3"/>
+              <rect x="124" y="50" width="72" height="34" rx="8" fill="#1a2650"/><circle cx="138" cy="67" r="7" fill="#5fcf8d"/><path d="M150 62h36M150 72h24" stroke="#c9d3f2" stroke-width="3" stroke-linecap="round"/>
+              <rect x="124" y="92" width="72" height="34" rx="8" fill="#1a2650"/><circle cx="138" cy="109" r="7" fill="#f5b544"/><path d="M150 104h36M150 114h20" stroke="#c9d3f2" stroke-width="3" stroke-linecap="round"/>
+              <path d="M262 64a28 28 0 1 1-26-36 22 22 0 0 0 26 36Z" fill="#ffd27a"/>
+              <path d="M60 150a40 40 0 0 1 68-28M60 150l-6-14M60 150l14-4" stroke="#7aa2ff" stroke-width="4" fill="none" stroke-linecap="round"/>
+              <circle cx="250" cy="150" r="5" fill="#fff"/><circle cx="276" cy="120" r="3" fill="#fff"/><circle cx="48" cy="60" r="3" fill="#fff"/>
+            </svg>
+          </div>
+          <div class="sx-phase-text">
+            <span class="sx-phase-num">03</span>
+            <h3>Destek</h3>
+            <p class="lead">Kurulumdan sonra da yanınızdayız; çoğu sorunu siz fark etmeden çözeriz.</p>
+            <ul class="sx-list">
+              <li>Gece otomatik güncelleme: 2026'da çalışan, 2027'de de çalışır</li>
+              <li>Uzaktan hızlı servis, gerekirse eve geliriz</li>
+              <li>Bakım ziyareti talepten sonra 7 iş günü içinde</li>
+            </ul>
+            <span class="sx-chip">Ürünler kendi garantisiyle</span>
+          </div>
+        </article>
       </div>
     </section>
 
-    <!-- ===== AFTER INSTALLATION ===== -->
-    <section class="section section-alt" id="aftercare">
+    <!-- ===== WHY EVRA ===== -->
+    <section class="section sx-why">
       <div class="container">
-        <div class="section-head">
-          <p class="eyebrow">Bakım</p>
-          <h2>Kurulumdan sonra</h2>
+        <div class="section-head center">
+          <p class="eyebrow">Neden Evra?</p>
+          <h2>Evinizi bize emanet edin</h2>
         </div>
-        <div class="svc-tiles">
-          <article class="svc-tile c-green">
-            <span class="svc-tile-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.3 7.5 9.5 4.3-1.2 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m9 12 2 2 4-4"/></svg></span>
-            <h3>Güvence</h3>
-            <ul>
-              <li>Ürünler kendi garantisiyle</li>
-              <li>Ana sistem arızasında değişim (ücretli)</li>
-            </ul>
-          </article>
-          <article class="svc-tile c-blue">
-            <span class="svc-tile-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg></span>
-            <h3>Hızlı servis</h3>
-            <ul>
-              <li>Çoğu sorunu uzaktan çözeriz</li>
-              <li>Eve gelmemize gerek kalmaz</li>
-            </ul>
-          </article>
-          <article class="svc-tile c-amber">
-            <span class="svc-tile-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M9 15.5l2 2 4-4"/></svg></span>
-            <h3>Bakım ziyareti</h3>
-            <ul>
-              <li>Talepten sonra 7 iş günü içinde</li>
-              <li>Pil değişimi ve kontrol</li>
-            </ul>
-          </article>
-          <article class="svc-tile c-violet">
-            <span class="svc-tile-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></span>
-            <h3>Gece güncellemeleri</h3>
-            <ul>
-              <li>Siz uyurken, otomatik</li>
-              <li>2026'da çalışan, 2027'de de çalışır</li>
-            </ul>
-          </article>
+        <div class="sx-why-grid">
+          <article class="c-blue"><span class="sx-why-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><h3>Tek muhatap</h3><p>Plandan bakıma aynı ekip. Kimi arayacağınızı düşünmezsiniz.</p></article>
+          <article class="c-teal"><span class="sx-why-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 12 4l9 7v9H3v-9Z"/><path d="M9 20v-6h6v6"/></svg></span><h3>Evinizde çalışır</h3><p>İnternet kesilse de ışıklar, ısıtma ve alarm çalışmaya devam eder.</p></article>
+          <article class="c-amber"><span class="sx-why-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"/><path d="m9 12 2 2 4-4"/></svg></span><h3>Teknik bilgi gerekmez</h3><p>Kurar, ayarlar, anlatırız. Siz sadece kullanırsınız.</p></article>
         </div>
       </div>
     </section>
 
-    <!-- ===== SOMETHING WRONG? ===== -->
-    <section class="section">
+    <!-- ===== SUBSCRIPTION TABLE (assets/js/plans.js; plans + rows: settings.js) ===== -->
+    <section class="section sx-plans" id="abonelik">
       <div class="container">
-        <div class="svc-help">
-          <div class="svc-help-head">
+        <div class="section-head center">
+          <p class="eyebrow">Abonelik</p>
+          <h2>Ücretsiz başlayın, <span class="hl">ihtiyacınız kadar</span> ekleyin</h2>
+          <p class="lead">Cihazlar bir kez alınır. Bakım ve hızlı servis isterseniz aylık bir planla bizden.</p>
+        </div>
+        <div data-plan-table></div>
+        <p class="note center">Plan istediğiniz zaman değiştirilebilir ya da iptal edilebilir; sistem planı olmadan da çalışır.</p>
+      </div>
+    </section>
+
+    <!-- ===== HOME ASSISTANT ===== -->
+    <section class="section sx-ha" id="home-assistant">
+      <div class="container">
+        <div class="section-head center">
+          <p class="eyebrow">Sistemin kalbi</p>
+          <h2>Home Assistant <span class="hl">nedir?</span></h2>
+          <p class="lead">Ana Sistem 4'ün içinde çalışan, dünyanın en yaygın açık kaynaklı akıllı ev yazılımı.</p>
+        </div>
+        <div class="sx-ha-art" aria-label="Cihazlar Ana Sistem 4'e bağlanır, oradan telefonunuza ve duvar ekranına gelir">
+          <svg viewBox="0 0 900 380" role="img" aria-hidden="true">
+            <defs>
+              <radialGradient id="ha-core-glow"><stop offset="0" stop-color="#f5b544" stop-opacity=".55"/><stop offset="1" stop-color="#f5b544" stop-opacity="0"/></radialGradient>
+              <linearGradient id="ha-wire" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5b8cff"/><stop offset="1" stop-color="#f5b544"/></linearGradient>
+            </defs>
+            <g class="ha-wires" fill="none" stroke="url(#ha-wire)" stroke-width="2.5">
+              <path d="M150 70C260 70 300 190 400 190"/><path d="M130 150C250 150 300 190 400 190"/><path d="M130 230C250 230 300 190 400 190"/><path d="M150 310C260 310 300 190 400 190"/>
+              <path d="M500 190C600 190 640 90 750 90"/><path d="M500 190C600 190 640 190 770 190"/><path d="M500 190C600 190 640 290 750 290"/>
+            </g>
+            <g class="ha-pulses" fill="#ffd27a">
+              <circle r="4"><animateMotion dur="2.6s" repeatCount="indefinite" path="M150 70C260 70 300 190 400 190"/></circle>
+              <circle r="4"><animateMotion dur="3.1s" repeatCount="indefinite" begin=".6s" path="M130 150C250 150 300 190 400 190"/></circle>
+              <circle r="4"><animateMotion dur="2.8s" repeatCount="indefinite" begin="1.1s" path="M130 230C250 230 300 190 400 190"/></circle>
+              <circle r="4"><animateMotion dur="3.3s" repeatCount="indefinite" begin=".3s" path="M150 310C260 310 300 190 400 190"/></circle>
+              <circle r="4"><animateMotion dur="2.4s" repeatCount="indefinite" begin=".9s" path="M500 190C600 190 640 90 750 90"/></circle>
+              <circle r="4"><animateMotion dur="2.9s" repeatCount="indefinite" begin=".2s" path="M500 190C600 190 640 190 770 190"/></circle>
+              <circle r="4"><animateMotion dur="2.7s" repeatCount="indefinite" begin="1.4s" path="M500 190C600 190 640 290 750 290"/></circle>
+            </g>
+            <circle cx="450" cy="190" r="130" fill="url(#ha-core-glow)"/>
+            <rect x="390" y="130" width="120" height="120" rx="28" fill="#0d1530" stroke="#f5b544" stroke-width="3"/>
+            <path d="M425 196 450 174l25 22v24h-50Z" fill="none" stroke="#f5b544" stroke-width="4" stroke-linejoin="round"/>
+            <text x="450" y="280" text-anchor="middle" class="ha-label">Ana Sistem 4</text>
+            <g class="ha-node" transform="translate(130 70)"><circle r="30"/><text x="-42" y="5" text-anchor="end">Wi-Fi</text><path d="M-12-2a17 17 0 0 1 24 0M-7 4a10 10 0 0 1 14 0" /><circle cy="9" r="2.5" class="dot"/></g>
+            <g class="ha-node" transform="translate(110 150)"><circle r="30"/><text x="-42" y="5" text-anchor="end">Zigbee</text><path d="M-9-8h18L-9 8h18"/></g>
+            <g class="ha-node" transform="translate(110 230)"><circle r="30"/><text x="-42" y="5" text-anchor="end">Bluetooth</text><path d="m-6-6 12 12-6 6V-12l6 6-12 12"/></g>
+            <g class="ha-node" transform="translate(130 310)"><circle r="30"/><text x="-42" y="5" text-anchor="end">Kızılötesi</text><path d="M-10 6l20-12M-10-2l12-7M-2 10l12-7"/></g>
+            <g class="ha-node ha-out" transform="translate(770 90)"><circle r="30"/><text x="42" y="5" text-anchor="start">Telefon</text><rect x="-8" y="-13" width="16" height="26" rx="3"/></g>
+            <g class="ha-node ha-out" transform="translate(790 190)"><circle r="30"/><text x="42" y="5" text-anchor="start">Duvar ekranı</text><rect x="-12" y="-9" width="24" height="18" rx="3"/></g>
+            <g class="ha-node ha-out" transform="translate(770 290)"><circle r="30"/><text x="42" y="5" text-anchor="start">Sesli asistan</text><path d="M0-12v14M-7 0a7 7 0 0 0 14 0M0 7v6"/></g>
+          </svg>
+        </div>
+        <div class="ha-points">
+          <article><span class="ha-point-icon c-teal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 12 4l9 7v9H3v-9Z"/></svg></span><h3>Evinizde çalışır</h3><p>Komutlar buluta gitmez; internet kesilse de ışıklar ve otomasyonlar çalışır.</p></article>
+          <article><span class="ha-point-icon c-blue"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/></svg></span><h3>Marka bağımsız</h3><p>2.000'den fazla entegrasyon. Tek bir markaya bağlı kalmazsınız.</p></article>
+          <article><span class="ha-point-icon c-violet"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><h3>Verileriniz sizde</h3><p>Kamera kayıtları ve geçmiş evde saklanır; satılmaz, paylaşılmaz.</p></article>
+          <article><span class="ha-point-icon c-amber"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></span><h3>Kendini yeniler</h3><p>Geceleri otomatik güncellenir; 2026'da çalışan sistem 2027'de de çalışır.</p></article>
+          <article><span class="ha-point-icon c-green"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V7a5 5 0 0 1 9.9-1"/><rect x="5" y="11" width="14" height="10" rx="2"/></svg></span><h3>Kilitlenme yok</h3><p>Sistem sizin. İsterseniz kendiniz de düzenleyebilirsiniz.</p></article>
+          <article><span class="ha-point-icon c-coral"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span><h3>Milyonlarca evde</h3><p>Dünyada geniş bir topluluk her gün geliştiriyor.</p></article>
+        </div>
+        <p class="brand-note">Home Assistant, Open Home Foundation'ın açık kaynak projesidir. Evra bu projenin resmi ortağı değildir; sistemi sizin için kurar ve yönetir.</p>
+      </div>
+    </section>
+
+    <!-- ===== SOMETHING WRONG? + START ===== -->
+    <section class="section sx-end">
+      <div class="container">
+        <div class="sx-help">
+          <div>
             <p class="eyebrow">Sorun mu var?</p>
             <h2>3 adımda çözüm</h2>
+            <ol class="sx-flow">
+              <li><strong>İstek gönderin</strong><span>Sipariş numaranızla</span></li>
+              <li><strong>Uzaktan bakalım</strong><span>Çoğu sorun burada biter</span></li>
+              <li><strong>Gerekirse gelelim</strong><span>Size uyan bir saatte</span></li>
+            </ol>
+            <div class="actions">
+              <a class="btn btn-glow" href="/support.html#request">Destek iste</a>
+              <a class="btn btn-ghost" href="/support.html#faq">SSS'ye bak</a>
+            </div>
           </div>
-          <ol class="svc-flow">
-            <li class="c-coral"><span class="svc-flow-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.5 2.5-10 10M21.5 2.5 15 21l-3.5-8.5L3 9l18.5-6.5Z"/></svg></span><strong>İstek gönderin</strong><span>Sipariş numaranızla</span></li>
-            <li class="c-blue"><span class="svc-flow-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span><strong>Uzaktan bakalım</strong><span>Çoğu sorun burada biter</span></li>
-            <li class="c-teal"><span class="svc-flow-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 12 4l9 7v9H3v-9Z"/><path d="M10 20v-5h4v5"/></svg></span><strong>Gerekirse gelelim</strong><span>Size uyan bir saatte</span></li>
-          </ol>
-          <div class="actions">
-            <a class="btn btn-primary" href="/support.html#request">Destek iste</a>
-            <a class="btn btn-secondary" href="/support.html#faq">SSS'ye bak</a>
+          <div class="sx-start">
+            <h2>Projenize başlayalım</h2>
+            <p>Ücretsiz keşifte evinizi birlikte planlayalım.</p>
+            <a class="btn btn-glow" href="/contact.html">Ücretsiz keşif iste</a>
           </div>
         </div>
       </div>

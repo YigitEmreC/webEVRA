@@ -27,7 +27,9 @@ function render(root, list, compact) {
   const draw = () => {
     if (root.querySelector(".package-card")) openIds = new Set([...root.querySelectorAll("details[data-contents][open]")].map((d) => d.dataset.contents));
     const selected = getOrder().package;
-    root.innerHTML = list.map((p) => card(p, compact, p.id === selected, Boolean(selected), openIds.has(p.id))).join("");
+    root.innerHTML =
+      list.map((p) => card(p, compact, p.id === selected, Boolean(selected), openIds.has(p.id))).join("") +
+      (compact ? "" : ownPackageCard());
   };
   draw();
   onOrderChange(draw);
@@ -75,6 +77,21 @@ function card(p, compact, selected, hasPackage, open) {
         ${selected ? removeButtonHtml() : ""}
       </div>
     </article>`;
+}
+
+/** Last tile of the list: an empty "make your own" package that leads to the builder. */
+function ownPackageCard() {
+  return `
+    <a class="card package-card package-card-own" href="#kendin-kur">
+      <span class="own-plus" aria-hidden="true">+</span>
+      <h3 class="card-title package-name">Kendi paketini oluştur</h3>
+      <p class="card-kicker-plain">Birkaç soruya cevap verin, ürünleri evinize göre biz önerelim.</p>
+      <ul class="check-list">
+        <li>${icon("check")}<span>Odanıza göre ürün seçimi</span></li>
+        <li>${icon("check")}<span>Fiyatı anında görün</span></li>
+      </ul>
+      <span class="btn btn-secondary">Oluşturmaya başla →</span>
+    </a>`;
 }
 
 /** The products inside a package, with quantities and links to the Products page. */
