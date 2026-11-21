@@ -1949,3 +1949,59 @@ button.tab-room { cursor: pointer; }
 .question-answers .btn:disabled { opacity: 0.45; cursor: not-allowed; filter: grayscale(0.5); box-shadow: none; transform: none; }
 .question-pick-hint { margin: 0.6rem 0 0; font-size: 0.88rem; color: #a3b1d8; }
 .question-pick-hint strong { color: #ffd27a; }
+
+/* ===== Phone: roomier, smoother ===== */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+a, button, summary, label, input, select { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.pt-short { display: none; }
+.site-footer a[href^="mailto:"] { word-break: normal; overflow-wrap: normal; white-space: nowrap; }
+
+@media (max-width: 640px) {
+  /* Hero / page buttons: full width, equal, easy to tap */
+  .hero .actions, .page-hero .actions, .sx .actions { flex-direction: column; align-items: stretch; gap: 0.7rem; }
+  .hero .actions .btn, .page-hero .actions .btn, .sx .actions .btn { width: 100%; justify-content: center; min-height: 3.1rem; }
+
+  /* Footer: brand and contact span the full width so nothing breaks mid-word */
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 1.75rem 1.25rem; }
+  .footer-grid > :first-child, .footer-grid > :last-child { grid-column: 1 / -1; }
+
+  /* Builder: less frame, more content */
+  .builder { padding: 0.75rem 0.65rem; border-radius: 16px; }
+  .builder-top { gap: 0.4rem; }
+  .builder-restart { width: 2.75rem; padding: 0; font-size: 0; }
+  .builder-restart::before { content: "↺"; font-size: 1.2rem; }
+  .builder-steps { gap: 0.3rem; }
+  .builder-steps button { padding: 0.4rem 0.2rem; }
+
+  /* Question products: one tidy row each, bigger +/− */
+  .question-preview { flex-direction: column; gap: 0.5rem; }
+  .question-preview li { display: flex; width: 100%; border-radius: 14px; padding: 0.45rem 0.5rem; }
+  .question-preview .qp-name { flex: 1; min-width: 0; line-height: 1.25; }
+  .qp-ctrl button, .qp-remove { width: 2.3rem; height: 2.3rem; font-size: 1.15rem; }
+  .qp-ctrl output { min-width: 1.6rem; }
+  .qp-off { white-space: nowrap; }
+  .question-answers { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+  .question-answers .btn { width: 100%; min-height: 3.1rem; padding-inline: 0.5rem; }
+  .question-detail { padding: 0.8rem 0.85rem; }
+  .builder-nav .link-button { padding: 0.6rem 0.2rem; }
+
+  /* Subscription table: all three plans fit, no sideways scrolling */
+  .pt-scroll { overflow: visible; padding-top: 1rem; }
+  .plan-table { min-width: 0; table-layout: fixed; border-spacing: 3px; }
+  .plan-table th, .plan-table td { padding: 0.65rem 0.25rem; border-radius: 8px; }
+  .plan-table thead th { padding: 1.1rem 0.2rem 0.7rem; }
+  .plan-table thead .pt-corner, .plan-table tbody th { width: 36%; }
+  .plan-table tbody th { font-size: 0.8rem; line-height: 1.3; padding-left: 0.1rem; }
+  .pt-corner span { font-size: 0.62rem; letter-spacing: 0.1em; }
+  .pt-name { font-size: 0.92rem; }
+  .pt-price { font-size: 1rem; }
+  .pt-price small { display: block; font-size: 0.68rem; }
+  .pt-sub { display: none; }
+  .pt-badge { top: -0.6rem; padding: 0.12rem 0.5rem; font-size: 0.62rem; }
+  .pt-long { display: none; }
+  .pt-short { display: inline; }
+  .pt-yes, .pt-no { width: 1.15rem; height: 1.15rem; }
+  .plan-table .pt-gold, .plan-table .is-popular .pt-gold { width: 1.3rem; height: 1.3rem; }
+  .pt-text { font-size: 0.72rem; }
+  .pt-cta .btn { width: 100%; }
+}

@@ -39,7 +39,7 @@ export function initPlans() {
                 .map(
                   (p) => `
                 <th scope="col" class="${p.popular ? "is-popular" : ""}">
-                  ${p.popular ? `<span class="pt-badge">En çok tercih edilen</span>` : ""}
+                  ${p.popular ? `<span class="pt-badge"><span class="pt-long">En çok tercih edilen</span><span class="pt-short">Popüler</span></span>` : ""}
                   <span class="pt-name">${escapeHtml(p.name)}</span>
                   ${price(p)}
                   <span class="pt-sub">${escapeHtml(p.text || "")}</span>
