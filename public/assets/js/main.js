@@ -12,7 +12,7 @@ import { initCartPage } from "./cart-page.js";
 import { initForms } from "./forms.js";
 import { initFaq } from "./faq.js";
 
-const features = [initTheme, initNav, initActiveLink, initCartBadge, initYear, ensureToast, initProducts, initPackages, initBuilder, initShowcase, initPlans, initCartPage, initForms, initFaq, initOrderSuccess];
+const features = [initNightSky, initTheme, initNav, initActiveLink, initCartBadge, initYear, ensureToast, initProducts, initPackages, initBuilder, initShowcase, initPlans, initCartPage, initForms, initFaq, initOrderSuccess];
 
 for (const init of features) {
   try {
@@ -24,6 +24,33 @@ for (const init of features) {
 
 // Dark mode switch in the header. The saved choice is applied before the page
 // draws by a one-line script in each page's <head>, so there is no flash.
+/**
+ * Night background behind every page (shown in night mode, the default):
+ * slow northern lights at the top and thin lines of light that run across the
+ * page and fade out. Pure CSS animation, fixed behind the content.
+ */
+function initNightSky() {
+  if (document.querySelector(".night-sky")) return;
+  const lines = [
+    "M-60 140C260 40 520 300 860 180S1360 20 1520 120",
+    "M-80 320C300 200 640 470 980 320S1400 220 1540 300",
+    "M-60 520C240 400 600 660 940 500S1380 400 1520 480",
+    "M-60 700C320 600 660 840 1000 680S1400 600 1520 660",
+    "M-80 860C300 760 600 980 960 840S1380 760 1540 820",
+    "M1500 60C1180 200 900 40 600 180S120 260 -60 160",
+    "M1500 420C1200 560 940 380 620 520S160 600 -60 500",
+    "M1500 780C1160 900 880 720 560 860S140 940 -60 860",
+  ];
+  document.body.insertAdjacentHTML(
+    "afterbegin",
+    `<div class="night-sky" aria-hidden="true">
+      <div class="aurora"><span></span><span></span><span></span></div>
+      <svg class="night-lines" viewBox="0 0 1440 1000" preserveAspectRatio="none">${lines.map((d) => `<path d="${d}"/>`).join("")}</svg>
+      <div class="night-stars"></div>
+    </div>`
+  );
+}
+
 function initTheme() {
   const root = document.documentElement;
   const sync = () => {

@@ -130,7 +130,7 @@ export const day = [
     label: "Ve daha fazlası",
     title: "Bağlanan her şey sisteme katılır",
     text: "2.000'den fazla entegrasyonla evinizdeki cihazlar aynı sisteme bağlanır.",
-    tags: ["Robot süpürge", "Sulama", "Garaj kapısı", "Hava kalitesi", "Su vanası", "Sesli asistan", "Beyaz eşya", "Hoparlör"],
+    tags: ["Robot süpürge", "Sulama", "Garaj kapısı", "Hava kalitesi", "Su vanası", "Beyaz eşya", "Hoparlör"],
     theme: "more",
   },
 ];

@@ -8,7 +8,7 @@
   <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/css/style.css">
   <meta name="robots" content="noindex">
-  <script>try{if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}</script>
+  <script>try{if(localStorage.getItem("theme")!=="light")document.documentElement.dataset.theme="dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
   <!-- Only reachable while ordering: without a chosen package, go to the Packages page. -->
   <script>try{var o=JSON.parse(localStorage.getItem("order.v1")||"null");if(!o||!o.package)location.replace("/packages.html")}catch(e){location.replace("/packages.html")}</script>
   <script type="module" src="/assets/js/main.js"></script>
