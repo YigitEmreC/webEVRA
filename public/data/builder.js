@@ -11,6 +11,7 @@
 //    "Petek mi, yerden ısıtma mı?" diye ayrıca sorulur.
 //  • heatingSystems: her ısıtma sisteminin eklediği ürünler.
 //  • questions: "Sorular" adımı. Müşteri "Evet" derse `items` eklenir.
+//    detail: soru altındaki "Nasıl çalışır?" maddeleri.
 //  • roomProducts: oda düzenleyicide o oda için önce gösterilen ürünler.
 //
 //  Ürün satırlarında:
@@ -88,13 +89,46 @@ export const heatingSystems = [
     name: "Elektrikli ısıtıcı",
     items: [{ id: "smart-plug", qty: 1, min: 1, room: "living" }],
   },
+  // Only offered when a ready package is used as the starting point.
+  { id: "yok", name: "Isıtma ürünü yok", items: [] },
 ];
+
+// Ready packages opened in the builder ("Bu paketi seç"): which rooms their
+// products go to. Same room words as above; the first rooms come first.
+export const templateRooms = {
+  hub: ["hall"],
+  "wall-panel": ["living"],
+  "smoke-sensor": ["kitchen", "living"],
+  "gas-detector": ["kitchen"],
+  "flood-sensor": ["bath1", "kitchen"],
+  "water-valve": ["kitchen"],
+  "panic-button": ["bed1", "bath1", "living"],
+  "presence-sensor": ["bath1", "bed1"],
+  "night-light": ["kids", "bed1"],
+  "indoor-camera": ["living", "kids"],
+  "outdoor-camera": ["balconies", "hall"],
+  "climate-sensor": ["kids", "living", "bed1"],
+  "door-sensor": ["hall", "balconies", "living"],
+  "motion-sensor": ["hall", "living"],
+  "smart-plug": ["living", "kitchen"],
+  "colour-bulb": ["rooms"],
+  "light-strip": ["living"],
+  relay: ["kitchen"],
+  thermostat: ["living"],
+  "radiator-valve": ["rooms"],
+  "thermal-actuator": ["rooms"],
+  "smart-lock": ["hall"],
+  siren: ["hall"],
+  "curtain-motor": ["living", "bed1"],
+  irrigation: ["balconies", "living"],
+};
 
 export const questions = [
   {
     id: "safety",
     title: "Duman, gaz ve su kaçağında haber almak ister misiniz?",
     hint: "Önerilir: evde olmasanız da ilk siz bilirsiniz.",
+    detail: ["Dedektör öttüğü anda telefonunuza bildirim gelir", "Gaz kaçağında kombi kapanır, su kaçağında ana vana kapatılabilir", "Pili azalınca sizi önceden uyarır"],
     items: [
       { id: "smoke-sensor", qty: 1, room: "kitchen" },
       { id: "gas-detector", qty: 1, room: "kitchen" },
@@ -105,6 +139,7 @@ export const questions = [
     id: "lights",
     title: "Işıklar kendiliğinden yanıp sönsün mü?",
     hint: "Akşam yanar, odaya girince yanar, çıkınca söner.",
+    detail: ["Güneş batınca salon ışıkları kendiliğinden yanar", "Koridora girince ışık yanar, kimse kalmayınca söner", "Renk ve parlaklığı uygulamadan ayarlarsınız"],
     items: [
       { id: "colour-bulb", qty: 1, room: "rooms" },
       { id: "motion-sensor", qty: 1, room: "hall" },
@@ -115,6 +150,7 @@ export const questions = [
     id: "security",
     title: "Kamera ve hırsız alarmı ister misiniz?",
     hint: "Kapı açılınca bildirim, izinsiz girişte siren.",
+    detail: ["Evde kimse yokken kapı açılırsa siren çalar, size haber gelir", "Kameralar hareket görünce kayıt alır; kayıtlar evde kalır", "Alarmı telefondan ya da duvar ekranından kurarsınız"],
     items: [
       { id: "indoor-camera", qty: 1, room: "living" },
       { id: "outdoor-camera", qty: 1, room: "balconies", fallback: "hall" },
@@ -126,6 +162,7 @@ export const questions = [
     id: "elderly",
     title: "Evde yaşlı ya da bakıma ihtiyacı olan biri var mı?",
     hint: "Acil yardım butonu ve hareketsizlik takibi.",
+    detail: ["Acil butona basılınca yakınlarınıza anında haber gider", "Banyoda uzun süre hareket olmazsa uyarı gelir", "Gece kalkınca yatak–banyo yolu kendiliğinden aydınlanır"],
     items: [
       { id: "panic-button", qty: 1, room: "bed1" },
       { id: "panic-button", qty: 1, room: "bath1" },
@@ -137,6 +174,7 @@ export const questions = [
     id: "baby",
     title: "Bebeğiniz ya da küçük çocuğunuz var mı?",
     hint: "Ağlama algılayan kamera, oda sıcaklığı, pencere uyarısı.",
+    detail: ["Kamera ağlamayı algılayınca telefonunuza bildirim gelir", "Bebek odası çok ısınır ya da soğursa uyarı alırsınız", "Pencere veya balkon kapısı açılınca haber verir"],
     items: [
       { id: "indoor-camera", qty: 1, room: "kids" },
       { id: "climate-sensor", qty: 1, room: "kids" },
@@ -148,6 +186,7 @@ export const questions = [
     id: "pets",
     title: "Evcil hayvanınız var mı?",
     hint: "Uzaktan görün ve seslenin, mamayı programlayın.",
+    detail: ["Kamerayla dostunuzu görür, uzaktan seslenirsiniz", "Mama makinesi ve su pınarı prizden programla çalışır", "Ev çok ısınırsa ya da balkon açık kalırsa uyarı gelir"],
     items: [
       { id: "indoor-camera", qty: 1, room: "living" },
       { id: "smart-plug", qty: 1, room: "kitchen" },
@@ -159,6 +198,7 @@ export const questions = [
     id: "curtains",
     title: "Perdeler kendiliğinden açılıp kapansın mı?",
     hint: "Sabah açılır, akşam kapanır.",
+    detail: ["Sabah perdeler yavaşça açılarak uyandırır", "Güneş batınca kendiliğinden kapanır", "Tatildeyken açılıp kapanarak evi dolu gösterir"],
     items: [{ id: "curtain-motor", qty: 1, room: "living" }],
   },
 ];

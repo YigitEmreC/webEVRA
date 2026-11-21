@@ -96,6 +96,7 @@ export async function onRequestPost({ request, env }) {
     ? [
         ["Ev / ısıtma", `${sizeOf(pkg.size).label}${balconyText(pkg.balconies, ", ")} · ${heatingOf(pkg.heating).name}`],
         ["Paketteki ürünler", extrasText],
+        ...(pkg.base ? [["Başlangıç paketi", `${findItem(pkg.base)?.name || pkg.base} – ${formatMoney(toCents(findItem(pkg.base)?.price || 0))} (değişiklikler fiyata eklendi/çıkarıldı)`]] : []),
         ["Oda yerleşimi (müşterinin krokisi)", roomsText(pkg)],
         ["Soruların cevapları", answersText(pkg)],
         ["Fiyat hesabı (iç bilgi)", customPrice(pkg.items).steps.map(([label, cents]) => `${label}: ${formatMoney(cents)}`).join("\n")],

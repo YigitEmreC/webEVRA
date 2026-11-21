@@ -5,12 +5,15 @@
 // A custom package is stored as
 //   { size: "3+1", balconies: 2, heating: "kombi-petek",
 //     items: [{ id: "hub", qty: 1 }, ...],
-//     placements: { living: { "wall-panel": 1 }, bed1: { "radiator-valve": 1 } } }
+//     placements: { living: { "wall-panel": 1 }, bed1: { "radiator-valve": 1 } },
+//     base: "bebek" }   ← optional: a ready package used as the starting point
+// With a base, the price is that package's price plus (or minus) the cost of what
+// was added (or taken out), and only the main system is required.
 // balconies: 0–4, or null when not asked yet. placements say which room of the
 // floor plan (floor-plan.js) each product goes in; products not placed in any
 // room are still in the package. Data and rules: public/data/builder.js.
 
-import { CUSTOM_ID, CUSTOM_NAME, MAX_BALCONIES, homeSizes, systemItems, heatingSystems, questions } from "../../data/builder.js";
+import { CUSTOM_ID, CUSTOM_NAME, MAX_BALCONIES, homeSizes, systemItems, heatingSystems, questions, templateRooms } from "../../data/builder.js";
 import { planRooms } from "./floor-plan.js";
 import { findItem, toCents } from "./pricing.js";
 import { settings } from "../../data/settings.js";
@@ -23,10 +26,19 @@ export const SINGLE_ITEMS = ["hub"];
 export const sizeOf = (id) => homeSizes.find((s) => s.id === id) || null;
 export const heatingOf = (id) => heatingSystems.find((h) => h.id === id) || null;
 
+/** The ready package a custom package starts from, or null. */
+export const baseOf = (id) => {
+  const p = id ? findItem(id) : null;
+  return p && p.kind === "package" ? p : null;
+};
+
 /** System + heating products with their starting quantity and minimum. */
-export function requiredItems(size, heating) {
+export function requiredItems(size, heating, base = null) {
   const rooms = sizeOf(size)?.rooms || 1;
-  const list = [...systemItems.map((i) => ({ ...i, group: "system" }))];
+  const pkg = baseOf(base);
+  // Starting from a ready package: only the main system (and what the package has) is required.
+  const system = pkg ? systemItems.filter((i) => SINGLE_ITEMS.includes(i.id) || pkg.items.some((x) => x.id === i.id)) : systemItems;
+  const list = [...system.map((i) => ({ ...i, group: "system" }))];
   for (const i of heatingOf(heating)?.items || []) {
     list.push({ id: i.id, qty: i.qty === "rooms" ? rooms : i.qty, min: i.min || 0, room: i.room, group: "heating" });
   }
@@ -36,12 +48,12 @@ export function requiredItems(size, heating) {
 /** Least quantity allowed for a product in this package (0 for most). */
 export function minQty(custom, id) {
   if (!custom) return 0;
-  return Math.max(0, ...requiredItems(custom.size, custom.heating).filter((i) => i.id === id).map((i) => i.min));
+  return Math.max(0, ...requiredItems(custom.size, custom.heating, custom.base).filter((i) => i.id === id).map((i) => i.min));
 }
 
 /** The starting items for a size + heating choice. */
-export function startItems(size, heating) {
-  return requiredItems(size, heating).map(({ id, qty }) => ({ id, qty }));
+export function startItems(size, heating, base = null) {
+  return requiredItems(size, heating, base).map(({ id, qty }) => ({ id, qty }));
 }
 
 /**
@@ -61,7 +73,8 @@ export function cleanCustom(raw) {
     if (!item || item.kind !== "product" || !(n > 0)) continue;
     qty.set(item.id, Math.min((qty.get(item.id) || 0) + n, CUSTOM_MAX_QTY));
   }
-  for (const r of requiredItems(size.id, heating.id)) {
+  const base = baseOf(raw.base)?.id || null;
+  for (const r of requiredItems(size.id, heating.id, base)) {
     if ((qty.get(r.id) || 0) < r.min) qty.set(r.id, r.min);
   }
   for (const id of SINGLE_ITEMS) if (qty.has(id)) qty.set(id, 1);
@@ -74,6 +87,7 @@ export function cleanCustom(raw) {
     items,
     placements: normalizePlacements(raw.placements, items, roomsOf(size.id, balconies)),
     answers: cleanAnswers(raw.answers),
+    base,
   };
 }
 
@@ -165,9 +179,11 @@ export function applyAnswer(custom, questionId, yes) {
  * Builds a package from scratch: system + heating products in their rooms, then
  * every "Evet" answer. Used when the home itself changes after the questions.
  */
-export function buildFromAnswers(size, balconies, heating, answers = {}) {
-  let custom = { size, balconies, heating, items: startItems(size, heating), placements: {}, answers: {} };
-  custom.placements = autoPlace(custom);
+export function buildFromAnswers(size, balconies, heating, answers = {}, base = null) {
+  const items = new Map(startItems(size, heating, base).map((i) => [i.id, i.qty]));
+  for (const i of baseOf(base)?.items || []) items.set(i.id, Math.max(items.get(i.id) || 0, i.qty));
+  let custom = { size, balconies, heating, base, items: [...items].map(([id, qty]) => ({ id, qty })), placements: {}, answers: {} };
+  custom.placements = placeItems({ ...custom, placements: autoPlace(custom) });
   for (const q of questions) {
     if (answers[q.id] === undefined) continue;
     custom = { ...custom, ...applyAnswer(custom, q.id, answers[q.id]) };
@@ -225,7 +241,7 @@ export function autoPlace(custom, ids = null) {
   const exists = new Set(rooms.map((r) => r.id));
   const placements = JSON.parse(JSON.stringify(custom.placements || {}));
   const qtyOf = (id) => custom.items.find((i) => i.id === id)?.qty || 0;
-  for (const req of requiredItems(custom.size, custom.heating)) {
+  for (const req of requiredItems(custom.size, custom.heating, custom.base)) {
     if (!req.room || (ids && !ids.includes(req.id))) continue;
     let left = qtyOf(req.id) - placedQty(placements, req.id);
     const targets = req.room === "rooms" ? ["living", ...rooms.filter((r) => r.kind === "bed").map((r) => r.id)] : [req.room];
@@ -236,6 +252,27 @@ export function autoPlace(custom, ids = null) {
       if (!add) continue;
       (placements[room] ||= {})[req.id] = (placements[room]?.[req.id] || 0) + add;
       left -= add;
+    }
+  }
+  return normalizePlacements(placements, custom.items, rooms);
+}
+
+/**
+ * Puts every product that has no room yet into its usual rooms
+ * (data/builder.js → templateRooms), one per room in turn. Used for ready
+ * packages opened in the builder. Returns new placements.
+ */
+export function placeItems(custom) {
+  const rooms = roomsOf(custom.size, custom.balconies);
+  const placements = JSON.parse(JSON.stringify(custom.placements || {}));
+  for (const { id, qty } of custom.items) {
+    let left = qty - placedQty(placements, id);
+    if (left <= 0) continue;
+    const targets = [...new Set((templateRooms[id] || ["living"]).flatMap((room) => resolveRooms({ room, fallback: "living" }, rooms)))];
+    if (!targets.length) continue;
+    for (let n = 0; left > 0; n++, left--) {
+      const room = targets[n % targets.length];
+      (placements[room] ||= {})[id] = (placements[room]?.[id] || 0) + 1;
     }
   }
   return normalizePlacements(placements, custom.items, rooms);
@@ -281,6 +318,17 @@ export function customPrice(items) {
   };
 }
 
+/**
+ * Price of a custom package. Starting from a ready package: that package's price,
+ * plus the cost of what was added and minus what was taken out (same formula).
+ */
+export function packagePrice(custom) {
+  const own = customPrice(custom.items).total;
+  const base = baseOf(custom.base);
+  if (!base) return own;
+  return Math.max(0, Math.round(base.price + own - customPrice(base.items).total));
+}
+
 /** A custom package shaped like the packages in catalog.js. */
 export function customPackage(custom) {
   const clean = cleanCustom(custom);
@@ -291,15 +339,16 @@ export function customPackage(custom) {
     id: CUSTOM_ID,
     kind: "package",
     custom: true,
-    name: CUSTOM_NAME,
+    name: baseOf(clean.base) ? `${baseOf(clean.base).name} (evinize göre)` : CUSTOM_NAME,
     context: `${size.label} ev${balconyText(clean.balconies, " · ")} · ${heating.name}`,
-    price: customPrice(clean.items).total,
+    price: packagePrice(clean),
     items: clean.items,
     size: clean.size,
     balconies: clean.balconies,
     heating: clean.heating,
     placements: clean.placements,
     answers: clean.answers,
+    base: clean.base,
   };
 }
 

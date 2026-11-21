@@ -71,6 +71,12 @@ export function setPackage(id) {
   write({ ...order, package: id });
 }
 
+/** Forgets the customer's own package (and un-chooses it if it was chosen). */
+export function removeCustom() {
+  const order = read();
+  write({ ...order, custom: null, package: order.package === CUSTOM_ID ? null : order.package, extras: order.package === CUSTOM_ID ? [] : order.extras });
+}
+
 /** Saves the customer's own package and chooses it. */
 export function setCustom(custom) {
   write({ package: CUSTOM_ID, extras: [], custom });

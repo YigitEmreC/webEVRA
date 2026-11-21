@@ -5,7 +5,7 @@
 
 import { packages } from "../../data/catalog.js";
 import { findItem, formatMoney, packageValueCents, toCents } from "./pricing.js";
-import { getOrder, setPackage, onOrderChange } from "./cart-store.js";
+import { getOrder, onOrderChange } from "./cart-store.js";
 import { removeButtonHtml, bindSwitcher } from "./package-switcher.js";
 import { escapeHtml, icon, typeTileHtml } from "./ui.js";
 
@@ -38,8 +38,12 @@ function render(root, list, compact) {
   root.addEventListener("click", (e) => {
     const button = e.target.closest("[data-choose]");
     if (!button) return;
-    setPackage(button.dataset.choose);
-    location.href = "/products.html";
+    // Open the package in the home-planning builder (same page if it's here).
+    if (document.getElementById("builder")) {
+      window.dispatchEvent(new CustomEvent("builder:template", { detail: button.dataset.choose }));
+    } else {
+      location.href = `/packages.html?sablon=${encodeURIComponent(button.dataset.choose)}#kendin-kur`;
+    }
   });
 }
 

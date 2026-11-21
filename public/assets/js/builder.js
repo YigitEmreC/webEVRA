@@ -11,6 +11,10 @@
 // column: what it does and which automations it makes possible.
 // Rules and data: builder-core.js and data/builder.js. Price: customPrice.
 // "5+1 ve üzeri" doesn't build a package: it opens the planning form (#planning).
+// A ready package ("Bu paketi seç" on a package card, or ?sablon=bebek) opens here
+// as the starting point: its products are placed in the rooms once the home is
+// chosen, the questions are skipped, and its price stays the package price
+// (plus/minus what is changed; builder-core.js → packagePrice).
 // The draft lives in sessionStorage ("builder.v1"): it survives going to another
 // page, coming back and reloading, but a new visit starts from scratch. Once
 // chosen it becomes the order's own package (cart-store.js → setCustom); that one
@@ -41,17 +45,22 @@ import {
   roomSummary,
   applyAnswer,
   buildFromAnswers,
+  questionPlacements,
   SINGLE_ITEMS,
+  baseOf,
+  packagePrice,
 } from "./builder-core.js";
 import { floorPlanSvg, emblemsSvg, categoryIcon } from "./floor-plan.js";
-import { getOrder, setCustom } from "./cart-store.js";
+import { getOrder, setCustom, removeCustom } from "./cart-store.js";
 import { settings } from "../../data/settings.js";
 import { escapeHtml, icon, toast, typeTileHtml } from "./ui.js";
 
 const KEY = "builder.v1";
 const STEPS = ["Ev", "Isıtma", "Sorular", "Krokiniz", "Özet"];
 
-const FRESH = () => ({ step: 0, q: 0, room: null, info: null, size: null, balconies: null, heating: null, items: [], placements: {}, answers: {}, chosen: false });
+const FRESH = () => ({ step: 0, q: 0, room: null, info: null, size: null, balconies: null, heating: null, items: [], placements: {}, answers: {}, base: null, chosen: false });
+/** Start from a ready package: home and heating are asked, the questions skipped. */
+const fromTemplate = (id) => ({ ...FRESH(), base: id, q: questions.length });
 const fromOrder = (custom) => ({ ...FRESH(), step: 4, q: questions.length, ...custom, answers: cleanAnswers(custom.answers), chosen: true });
 
 function loadDraft() {
@@ -61,6 +70,9 @@ function loadDraft() {
   } catch {
     /* storage blocked */
   }
+  // A ready package chosen elsewhere (home page card): ?sablon=bebek
+  const sablon = new URLSearchParams(location.search).get("sablon");
+  if (baseOf(sablon)) return fromTemplate(sablon);
   // "Paketimi düzenle" (from Siparişim / Ürünler): open the saved package.
   if (new URLSearchParams(location.search).has("duzenle") && order.custom) return fromOrder(order.custom);
   try {
@@ -78,6 +90,7 @@ function loadDraft() {
         items: Array.isArray(saved.items) ? saved.items.filter((i) => findItem(i?.id) && i.qty > 0) : [],
         placements: saved.placements && typeof saved.placements === "object" ? saved.placements : {},
         answers: cleanAnswers(saved.answers),
+        base: baseOf(saved.base)?.id || null,
       };
     }
   } catch {
@@ -112,7 +125,7 @@ export function initBuilder() {
     }
   };
   const qtyOf = (id) => state.items.find((i) => i.id === id)?.qty || 0;
-  const custom = () => ({ size: state.size, balconies: state.balconies, heating: state.heating, items: state.items, placements: state.placements, answers: state.answers });
+  const custom = () => ({ size: state.size, balconies: state.balconies, heating: state.heating, items: state.items, placements: state.placements, answers: state.answers, base: state.base });
   const rooms = () => roomsOf(state.size, state.balconies);
   const roomQty = (room, id) => state.placements[room]?.[id] || 0;
   const normalize = () => (state.placements = normalizePlacements(state.placements, state.items, rooms()));
@@ -122,7 +135,10 @@ export function initBuilder() {
   // Fixed frame; only the parts that change are redrawn (the plan only when the
   // home changes, so its animation doesn't replay on every click).
   root.innerHTML = `
-    <ol class="builder-steps" data-steps></ol>
+    <div class="builder-top">
+      <ol class="builder-steps" data-steps></ol>
+      <button type="button" class="builder-restart" data-restart title="Bütün seçimleri silip baştan başla">↺ Baştan başla</button>
+    </div>
     <div class="builder-layout">
       <div class="builder-panel" data-panel></div>
       <aside class="builder-side" data-side>
@@ -151,6 +167,7 @@ export function initBuilder() {
   const mobileBarEl = root.querySelector("[data-mobilebar]");
   const phone = window.matchMedia("(max-width: 899px)");
   let planKey = null;
+  let lastEmblems = null;
 
   function setQty(id, qty) {
     const n = Math.max(minQty(custom(), id), Math.min(qty, CUSTOM_MAX_QTY));
@@ -186,8 +203,8 @@ export function initBuilder() {
   function rebuild() {
     if (!state.heating || !state.size || sizeOf(state.size).large || state.balconies === null) return;
     const hadProducts = state.items.length > 0;
-    Object.assign(state, buildFromAnswers(state.size, state.balconies, state.heating, state.answers));
-    if (hadProducts) toast("Öneriler yeni evinize göre güncellendi");
+    Object.assign(state, buildFromAnswers(state.size, state.balconies, state.heating, state.answers, state.base));
+    if (hadProducts && !state.base) toast("Öneriler yeni evinize göre güncellendi");
   }
 
   function chooseSize(id) {
@@ -212,6 +229,12 @@ export function initBuilder() {
 
   function chooseHeating(id) {
     if (state.heating === id) return;
+    if (state.base) {
+      // Ready package: package products + this heating, all placed in rooms.
+      state.heating = id;
+      Object.assign(state, buildFromAnswers(state.size, state.balconies, id, state.answers, state.base));
+      return;
+    }
     // Take out the previous heating system's products, put in the new one's.
     const system = new Set(requiredItems(state.size, null).map((i) => i.id));
     const oldIds = new Set((heatingOf(state.heating)?.items || []).map((i) => i.id).filter((x) => !system.has(x)));
@@ -226,7 +249,8 @@ export function initBuilder() {
   }
 
   function answer(questionId, yes) {
-    Object.assign(state, applyAnswer(custom(), questionId, yes));
+    // Already "Evet" (maybe with products changed by hand): keep those changes.
+    if (!(yes && state.answers[questionId] === true)) Object.assign(state, applyAnswer(custom(), questionId, yes));
     const index = questions.findIndex((q) => q.id === questionId);
     const asked = state.q === index; // answered the question on screen (not in the overview)
     if (asked) state.q = index + 1;
@@ -293,6 +317,14 @@ export function initBuilder() {
     const { html, filled } = emblemsSvg({ bedrooms: size.bedrooms, balconies: state.balconies || 0 }, state.placements, findItem, { size: phone.matches ? 24 : 18 });
     const svg = planEl.querySelector(".floor-plan");
     svg.querySelector("[data-emblems]").innerHTML = html;
+    // Products that just arrived in a room flash brighter for a moment.
+    const now = new Set(Object.entries(state.placements).flatMap(([room, items]) => Object.keys(items).map((id) => `${room}|${id}`)));
+    if (lastEmblems && lastEmblems.planKey === planKey) {
+      svg.querySelectorAll(".fp-emblem[data-product]").forEach((g) => {
+        if (!lastEmblems.keys.has(`${g.dataset.room}|${g.dataset.product}`)) g.classList.add("is-new");
+      });
+    }
+    lastEmblems = { planKey, keys: now };
     svg.querySelectorAll(".fp-room[data-room]").forEach((g) => {
       g.classList.toggle("has-items", filled.includes(g.dataset.room));
       g.classList.toggle("is-selected", g.dataset.room === state.room);
@@ -331,13 +363,72 @@ export function initBuilder() {
   /** On a fresh start, a package made on an earlier visit can be reopened. */
   function savedNotice() {
     const order = getOrder();
+    if (state.base) {
+      const base = baseOf(state.base);
+      return `
+      <div class="notice-inline saved-pkg template-pkg">${icon("layers")}<span><strong>${escapeHtml(base.name)}</strong> ile başlıyorsunuz (${formatMoney(toCents(base.price))}). Evinizi seçin; ürünler odalara yerleşsin, dilediğinizi değiştirin.
+        <button type="button" class="link-button" data-clear-template>Boş başla</button></span></div>`;
+    }
     if (state.chosen || state.size || !order.custom) return "";
     const pkg = customPackage(order.custom);
     if (!pkg) return "";
     return `
       <div class="notice-inline saved-pkg">${icon("layers")}<span>Kayıtlı paketiniz var: <strong>${escapeHtml(pkg.context)}</strong>, ${formatMoney(toCents(pkg.price))}.
-        <button type="button" class="link-button" data-load-saved>Onu düzenle</button></span></div>`;
+        <button type="button" class="link-button" data-load-saved>Onu düzenle</button>
+        <button type="button" class="link-button link-danger" data-remove-saved>Kaldır</button></span></div>`;
   }
+
+  /**
+   * Home size as a slider (1+1 … 5+1 ve üzeri). While dragging only the bubble
+   * changes; the choice is made when the thumb is let go (or a label is clicked).
+   */
+  const sliderSizes = homeSizes.filter((s) => !s.large);
+  const largeSize = homeSizes.find((s) => s.large);
+  function sizeSlider() {
+    const index = sliderSizes.findIndex((s) => s.id === state.size);
+    const value = index < 0 ? 1 : index;
+    const last = sliderSizes.length - 1;
+    return `
+      <div class="size-slider${index < 0 ? " is-unset" : ""}" style="--p:${(value / last) * 100}%">
+        <output class="size-bubble" data-size-bubble>${index < 0 ? "Kaydırarak seçin" : sizeBubble(sliderSizes[value])}</output>
+        <input type="range" min="0" max="${last}" step="1" value="${value}" data-size-range aria-label="Ev büyüklüğü" aria-valuetext="${escapeHtml(sliderSizes[value].label)}">
+        <div class="size-ticks">
+          ${sliderSizes
+            .map((s, i) => `<button type="button" class="size-tick" data-size="${escapeHtml(s.id)}" aria-pressed="${state.size === s.id}" style="left:${(i / last) * 100}%">${escapeHtml(s.label)}</button>`)
+            .join("")}
+        </div>
+      </div>
+      ${
+        largeSize
+          ? `<button type="button" class="size-large" data-size="${escapeHtml(largeSize.id)}" aria-pressed="${state.size === largeSize.id}">
+              <span class="size-large-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3v-9Z"/><path d="M8 20v-5h3v5M14 13h3v3h-3z"/></svg></span>
+              <span><strong>${escapeHtml(largeSize.label)}</strong><small>Villa, dubleks ya da büyük daire: birlikte planlayalım</small></span>
+              <span class="size-large-arrow" aria-hidden="true">→</span>
+            </button>`
+          : ""
+      }`;
+  }
+  const sizeBubble = (s) => (s.large ? `<strong>${escapeHtml(s.label)}</strong><span>birlikte planlayalım</span>` : `<strong>${escapeHtml(s.label)}</strong><span>${s.rooms} oda · salon dahil</span>`);
+
+  // Slider: bubble follows while dragging, the choice is committed on release.
+  root.addEventListener("input", (e) => {
+    const range = e.target.closest?.("[data-size-range]");
+    if (!range) return;
+    const s = sliderSizes[Number(range.value)];
+    const box = range.closest(".size-slider");
+    box.style.setProperty("--p", `${(Number(range.value) / (sliderSizes.length - 1)) * 100}%`);
+    box.classList.remove("is-unset");
+    box.querySelector("[data-size-bubble]").innerHTML = sizeBubble(s);
+    range.setAttribute("aria-valuetext", s.label);
+  });
+  root.addEventListener("change", (e) => {
+    const range = e.target.closest?.("[data-size-range]");
+    if (!range) return;
+    chooseSize(sliderSizes[Number(range.value)].id);
+    draw();
+    root.querySelector("[data-size-range]")?.focus();
+    if (sizeOf(state.size).large) planning.scrollIntoView({ block: "start", behavior: "smooth" });
+  });
 
   // ── Steps ─────────────────────────────────────────────────────────────────
   function stepHome() {
@@ -345,18 +436,19 @@ export function initBuilder() {
     return `
       ${savedNotice()}
       <h3>Eviniz kaç oda?</h3>
-      <div class="choice-row">
-        ${homeSizes
-          .map((s) => `<button type="button" class="choice choice-compact" data-size="${escapeHtml(s.id)}" aria-pressed="${state.size === s.id}"><strong>${escapeHtml(s.label)}</strong></button>`)
-          .join("")}
-      </div>
+      ${sizeSlider()}
       ${
         state.size && !large
           ? `
         <h3 class="builder-q">Kaç balkonunuz var?</h3>
         <div class="choice-row">
           ${Array.from({ length: MAX_BALCONIES + 1 }, (_, n) => n)
-            .map((n) => `<button type="button" class="choice choice-compact" data-balconies="${n}" aria-pressed="${state.balconies === n}"><strong>${n === 0 ? "Yok" : n}</strong></button>`)
+            .map(
+              (n) => `<button type="button" class="choice balcony-choice" data-balconies="${n}" aria-pressed="${state.balconies === n}">
+                <span class="balcony-glyphs" aria-hidden="true">${n === 0 ? `<span class="balcony-none">—</span>` : `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10h18M5 10v9M9.7 10v9M14.3 10v9M19 10v9M3 19h18"/><path d="M6 10V5h12v5"/></svg>`.repeat(n)}</span>
+                <strong>${n === 0 ? "Yok" : n}</strong><small>${n === 0 ? "balkon yok" : n === 1 ? "balkon" : "balkon"}</small>
+              </button>`
+            )
             .join("")}
         </div>
         ${navHtml({ back: false, next: state.balconies === null ? null : 1 })}`
@@ -372,6 +464,7 @@ export function initBuilder() {
   function stepHeating() {
     const kind = kindOf(state.heating);
     return `
+      ${state.base ? savedNotice() : ""}
       <h3>Eviniz nasıl ısınıyor?</h3>
       <div class="choice-grid choice-grid-heat">
         ${heatingKinds
@@ -394,17 +487,77 @@ export function initBuilder() {
         </div>`
           : ""
       }
-      ${navHtml({ next: state.heating ? 2 : null })}`;
+      ${
+        state.base
+          ? `<div class="choice-row"><button type="button" class="choice choice-compact" data-heating="yok" aria-pressed="${state.heating === "yok"}"><strong>Isıtma ürünü istemiyorum</strong></button></div>`
+          : ""
+      }
+      ${navHtml({ next: state.heating ? (state.base ? 3 : 2) : null, nextLabel: state.base ? "Krokime bak" : "Devam et" })}`;
   }
 
   /** Product names a question would add, with the category icons. */
+  /** Rooms a question puts a product in, in this home (first room first). */
+  const questionRooms = (q, id) => {
+    const plan = questionPlacements(q, state.size, state.balconies);
+    return Object.keys(plan).filter((room) => plan[room][id]);
+  };
+
+  /** How many of a product the question gives: planned (not answered yet) or what's in its rooms now. */
+  function questionQty(q, id) {
+    if (state.answers[q.id] === true) return questionRooms(q, id).reduce((sum, room) => sum + roomQty(room, id), 0);
+    return 0; // nothing is added until "Evet, ekle" (or + on a product)
+  }
+  /** How many of a product "Evet, ekle" would add in this home. */
+  const plannedQty = (q, id) => Object.values(questionPlacements(q, state.size, state.balconies)).reduce((sum, r) => sum + (r[id] || 0), 0);
+
+  /**
+   * +1 / −1 / remove for a product of a question. Changing a product counts as
+   * "Evet" for that question; the change goes straight into the package.
+   */
+  function tweakQuestionItem(q, id, action) {
+    // + on a product before "Evet": only that product is added (the question counts as "Evet").
+    if (state.answers[q.id] !== true) state.answers = { ...state.answers, [q.id]: true };
+    const rooms = questionRooms(q, id);
+    if (!rooms.length) return;
+    if (action === "add") {
+      changeInRoom(rooms[0], id, 1);
+      return;
+    }
+    const placedIn = () => [...rooms].reverse().find((room) => roomQty(room, id) > 0);
+    if (action === "less") {
+      const room = placedIn();
+      if (room) changeInRoom(room, id, -1);
+      return;
+    }
+    for (let room = placedIn(), guard = 0; room && guard < 50; room = placedIn(), guard++) changeInRoom(room, id, -1);
+  }
+
   function questionPreview(q) {
     const seen = new Set();
     return q.items
       .filter((i) => !seen.has(i.id) && seen.add(i.id))
       .map((i) => findItem(i.id))
       .filter(Boolean)
-      .map((p) => `<li>${emblemIcon(p)}${escapeHtml(p.name)}</li>`)
+      .map((p) => {
+        const n = questionQty(q, p.id);
+        const id = escapeHtml(p.id);
+        return `
+        <li class="${n || state.answers[q.id] !== true ? "" : "is-off"}">
+          ${emblemIcon(p)}<span class="qp-name">${escapeHtml(p.name)}</span>
+          <span class="qp-ctrl" role="group" aria-label="${escapeHtml(p.name)}: adet">
+            <button type="button" data-qtweak="${id}" data-act="less" aria-label="Bir azalt" ${n ? "" : "disabled"} data-focus-key="qless-${id}">−</button>
+            <output>${n}</output>
+            <button type="button" data-qtweak="${id}" data-act="add" aria-label="Bir ekle" ${n >= CUSTOM_MAX_QTY ? "disabled" : ""} data-focus-key="qadd-${id}">+</button>
+          </span>
+          ${
+            n
+              ? `<button type="button" class="qp-remove" data-qtweak="${id}" data-act="remove" aria-label="${escapeHtml(p.name)} kaldır">✕</button>`
+              : state.answers[q.id] === true
+                ? `<span class="qp-off">Eklenmedi</span>`
+                : `<span class="qp-off">öneri ×${plannedQty(q, p.id)}</span>`
+          }
+        </li>`;
+      })
       .join("");
   }
 
@@ -431,6 +584,8 @@ export function initBuilder() {
         ${navHtml({ next: 3, nextLabel: "Krokime bak" })}`;
     }
     const q = questions[state.q];
+    // "Evet, ekle" works only once at least one product of the question is chosen (+).
+    const picked = [...new Set(q.items.map((i) => i.id))].some((id) => questionQty(q, id) > 0);
     return `
       <div class="question">
         <div class="question-progress" aria-hidden="true"><span style="width:${Math.round((state.q / n) * 100)}%"></span></div>
@@ -438,10 +593,12 @@ export function initBuilder() {
         <h3>${escapeHtml(q.title)}</h3>
         <p class="muted">${escapeHtml(q.hint)}</p>
         <ul class="question-preview">${questionPreview(q)}</ul>
+        ${q.detail?.length ? `<div class="question-detail"><p class="list-title">Nasıl çalışır?</p><ul class="tick-list">${q.detail.map((d) => `<li>${icon("check")}${escapeHtml(d)}</li>`).join("")}</ul></div>` : ""}
         <div class="question-answers">
-          <button type="button" class="btn btn-primary" data-answer="${q.id}" data-yes="1" aria-pressed="${state.answers[q.id] === true}">Evet, ekle</button>
-          <button type="button" class="btn btn-secondary" data-answer="${q.id}" data-yes="0" aria-pressed="${state.answers[q.id] === false}">Hayır</button>
+          <button type="button" class="btn btn-primary" data-answer="${q.id}" data-yes="1" aria-pressed="${state.answers[q.id] === true}" ${picked ? "" : 'disabled title="Önce + ile en az bir ürün seçin"'}>Evet, ekle</button>
+          <button type="button" class="btn btn-secondary" data-answer="${q.id}" data-yes="0" aria-pressed="${state.answers[q.id] === false}">Hayır, devam et</button>
         </div>
+        ${picked ? "" : `<p class="question-pick-hint">Eklemek istediğiniz ürünü <strong>+</strong> ile seçin, sonra “Evet, ekle”ye basın.</p>`}
         <div class="builder-nav">
           <button type="button" class="link-button" data-prev-q>← ${state.q ? "Önceki soru" : "Isıtma"}</button>
           <button type="button" class="link-button" data-skip-q>Soruları atla</button>
@@ -531,7 +688,7 @@ export function initBuilder() {
   }
 
   function doesHtml() {
-    const required = new Set(requiredItems(state.size, state.heating).filter((r) => r.min > 0).map((r) => r.id));
+    const required = new Set(requiredItems(state.size, state.heating, state.base).filter((r) => r.min > 0).map((r) => r.id));
     const order = products.map((p) => p.id);
     const items = [...state.items].sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
     if (!items.length) return "";
@@ -570,7 +727,7 @@ export function initBuilder() {
         ${
           inSide
             ? `<div class="room-editor-head"><h3>${escapeHtml(room.label)}</h3><button type="button" class="link-button" data-close-room>Kapat ✕</button></div>
-               <p class="room-editor-price">Paket fiyatı <strong>${formatMoney(toCents(customPrice(state.items).total))}</strong></p>`
+               <p class="room-editor-price">Paket fiyatı <strong>${formatMoney(toCents(packagePrice(custom())))}</strong></p>`
             : `<button type="button" class="link-button" data-close-room>← ${STEPS[state.step]} adımına dön</button>
                <h3>${escapeHtml(room.label)}</h3>`
         }
@@ -610,11 +767,11 @@ export function initBuilder() {
   }
 
   function summaryHtml() {
-    const { total } = customPrice(state.items);
+    const total = packagePrice(custom());
     const count = state.items.reduce((sum, i) => sum + i.qty, 0);
     return `
       <aside class="builder-summary" aria-live="polite">
-        <p class="cart-line-kind">Kendi paketiniz</p>
+        <p class="cart-line-kind">${state.base ? escapeHtml(baseOf(state.base).name) : "Kendi paketiniz"}</p>
         <p class="muted">${count} ürün · kurulum ve KDV dahil</p>
         <p class="builder-price">${formatMoney(toCents(total))}</p>
         ${state.step < 4 ? `<button type="button" class="btn btn-primary btn-block" data-goto="4">Özete geç</button>` : ""}
@@ -635,7 +792,7 @@ export function initBuilder() {
 
   /** Phones: price always at the bottom of the screen, and a way back up to the plan. */
   function mobileBarHtml() {
-    const { total } = customPrice(state.items);
+    const total = packagePrice(custom());
     const count = state.items.reduce((sum, i) => sum + i.qty, 0);
     return `
       <button type="button" class="mobilebar-plan" data-show-plan>${icon("layers")}<span>Kroki</span></button>
@@ -713,6 +870,13 @@ export function initBuilder() {
       revealPanel();
       return;
     }
+    const tweak = t.closest("[data-qtweak]");
+    if (tweak) {
+      const q = questions[Math.min(state.q, questions.length - 1)];
+      tweakQuestionItem(q, tweak.dataset.qtweak, tweak.dataset.act);
+      draw();
+      return;
+    }
     if (answerEl) {
       answer(answerEl.dataset.answer, answerEl.dataset.yes === "1");
       draw();
@@ -764,6 +928,28 @@ export function initBuilder() {
       draw();
       return;
     }
+    if (t.closest("[data-restart]")) {
+      if (state.items.length && !confirm("Bütün seçimleriniz silinip baştan başlanacak. Emin misiniz?")) return;
+      state = FRESH();
+      planKey = null;
+      lastEmblems = null;
+      draw();
+      root.scrollIntoView({ block: "start", behavior: "smooth" });
+      toast("Baştan başladınız");
+      return;
+    }
+    if (t.closest("[data-remove-saved]")) {
+      removeCustom();
+      toast("Kayıtlı paketiniz kaldırıldı");
+      draw();
+      return;
+    }
+    if (t.closest("[data-clear-template]")) {
+      state = FRESH();
+      planKey = null;
+      draw();
+      return;
+    }
     if (t.closest("[data-load-saved]")) {
       state = fromOrder(getOrder().custom);
       planKey = null;
@@ -793,6 +979,15 @@ export function initBuilder() {
       e.preventDefault();
       openRoom(roomEl.dataset.room);
     }
+  });
+
+  // "Bu paketi seç" on a package card of this page: start from that package.
+  window.addEventListener("builder:template", (e) => {
+    if (!baseOf(e.detail)) return;
+    state = fromTemplate(e.detail);
+    planKey = null;
+    draw();
+    root.scrollIntoView({ block: "start", behavior: "smooth" });
   });
 
   // Switching between phone and computer layout moves the room editor.

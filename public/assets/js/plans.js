@@ -59,15 +59,8 @@ export function initPlans() {
               )
               .join("")}
           </tbody>
-          <tfoot>
-            <tr>
-              <td></td>
-              ${plans
-                .map((p) => `<td class="${p.popular ? "is-popular" : ""}"><a class="btn ${p.popular ? "btn-glow" : "btn-ghost"} btn-sm" href="${escapeHtml(cta)}">${p.price === 0 ? "Kurulumla gelir" : "Bilgi al"}</a></td>`)
-                .join("")}
-            </tr>
-          </tfoot>
         </table>
-      </div>`;
+      </div>
+      <div class="pt-cta"><a class="btn btn-glow" href="${escapeHtml(cta)}">Bilgi al</a></div>`;
   });
 }
