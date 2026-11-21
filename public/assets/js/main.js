@@ -11,8 +11,9 @@ import { initPlans } from "./plans.js";
 import { initCartPage } from "./cart-page.js";
 import { initForms } from "./forms.js";
 import { initFaq } from "./faq.js";
+import { initSubscribe } from "./subscribe.js";
 
-const features = [initNightSky, initTheme, initNav, initActiveLink, initCartBadge, initYear, ensureToast, initProducts, initPackages, initBuilder, initShowcase, initPlans, initCartPage, initForms, initFaq, initOrderSuccess];
+const features = [initNightSky, initTheme, initNav, initActiveLink, initCartBadge, initYear, ensureToast, initProducts, initPackages, initBuilder, initShowcase, initPlans, initCartPage, initForms, initFaq, initOrderSuccess, initSubscribe];
 
 for (const init of features) {
   try {

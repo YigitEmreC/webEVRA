@@ -5,6 +5,8 @@
 // and plan the installation.
 // An own package ("Kendi paketini oluştur") has an exact price and no extras:
 // its products are listed instead, with a link back to the builder.
+// The form also asks for a subscription plan (settings.js → subscriptions); the
+// choice is kept for this visit (sessionStorage "order.plan").
 
 import { getOrder, setExtraQty, removeExtra, clearOrder, extrasCount, onOrderChange, MAX_QTY } from "./cart-store.js";
 import { orderPackage, sizeOf, heatingOf, balconyText, roomSummary } from "./builder-core.js";
@@ -24,6 +26,41 @@ export function initCartPage() {
   const extrasInput = form.querySelector("[data-order-extras]");
   const customInput = form.querySelector("[data-order-custom]");
   const depositBox = form.querySelector("[data-deposit]");
+  const planBox = form.querySelector("[data-plan-options]");
+  const plans = settings.subscriptions || [];
+  const PLAN_KEY = "order.plan";
+  const planPrice = (p) => (p.price === 0 ? "Ücretsiz" : typeof p.price === "number" ? `${formatMoney(toCents(p.price))} /ay` : "Fiyat yakında");
+  const chosenPlan = () => plans.find((p) => p.id === form.querySelector('input[name="plan"]:checked')?.value) || null;
+
+  // The comparison table with one radio per plan (plans.js, data-plan-select);
+  // no plan is pre-chosen, and the form can't be sent without one.
+  if (planBox) {
+    // Turkish message for the browser's "please choose" bubble.
+    const syncValidity = () => {
+      const first = planBox.querySelector('input[name="plan"]');
+      first?.setCustomValidity(chosenPlan() ? "" : "Lütfen bir abonelik planı seçin. Temel plan ücretsizdir.");
+    };
+    planBox.addEventListener("change", syncValidity);
+    syncValidity();
+    try {
+      const saved = sessionStorage.getItem(PLAN_KEY);
+      const input = saved && planBox.querySelector(`input[name="plan"][value="${CSS.escape(saved)}"]`);
+      if (input) {
+        input.checked = true;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    } catch {
+      /* fine */
+    }
+    planBox.addEventListener("change", () => {
+      try {
+        sessionStorage.setItem(PLAN_KEY, chosenPlan()?.id || "");
+      } catch {
+        /* fine */
+      }
+      render();
+    });
+  }
 
   function render() {
     const focusKey = document.activeElement?.dataset?.focusKey;
@@ -74,6 +111,7 @@ export function initCartPage() {
         <span>Şimdi ödenecek kapora (%${Math.round(settings.payment.depositRate * 100)})</span>
         <strong>${formatMoney(depositCents(pkg))}</strong>
       </div>
+      ${planBox ? planSummaryHtml() : ""}
 
       <p class="fine-print">${icon("check")}<span>${
         pkg.custom
@@ -84,6 +122,17 @@ export function initCartPage() {
     renderDeposit(pkg);
 
     if (focusKey) summary.querySelector(`[data-focus-key="${focusKey}"]`)?.focus();
+  }
+
+  /** The chosen subscription plan, under the totals. */
+  function planSummaryHtml() {
+    const plan = chosenPlan();
+    return `
+      <div class="order-plan">
+        <span>Abonelik${plan ? ` · ${escapeHtml(plan.name)}` : ""}</span>
+        ${plan ? `<strong>${planPrice(plan)}</strong>` : `<a class="text-link" href="#order-plan-pick" data-goto-plan>Plan seçin</a>`}
+      </div>
+      ${plan && plan.price ? `<p class="hint-small">Aylık ödeme kurulumdan sonra başlar.</p>` : ""}`;
   }
 
   /** Amount, bank details and what to write in the transfer description. */
@@ -158,6 +207,12 @@ export function initCartPage() {
   }
 
   summary.addEventListener("click", (e) => {
+    if (e.target.closest("[data-goto-plan]")) {
+      e.preventDefault();
+      planBox?.scrollIntoView({ behavior: "smooth", block: "center" });
+      planBox?.querySelector("input")?.focus({ preventScroll: true });
+      return;
+    }
     const step = e.target.closest("[data-qty]");
     if (step) {
       const current = getOrder().extras.find((x) => x.id === step.dataset.qty)?.qty || 0;

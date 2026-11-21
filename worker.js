@@ -7,12 +7,17 @@ import * as contact from "./functions/api/contact.js";
 import * as support from "./functions/api/support.js";
 import * as order from "./functions/api/order.js";
 import * as planning from "./functions/api/planning.js";
+import * as subscription from "./functions/api/subscription.js";
 
 const routes = {
   "/api/contact": contact,
   "/api/support": support,
   "/api/order": order,
   "/api/planning": planning,
+  // Monthly plans (lib/billing.js; off until BILLING_PROVIDER is set)
+  "/api/subscription": { onRequestPost: subscription.onRequestPost },
+  "/api/subscription/callback": { onRequestPost: subscription.onCallback },
+  "/api/subscription/webhook": { onRequestPost: subscription.onWebhook },
 };
 
 export default {

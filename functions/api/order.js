@@ -11,6 +11,8 @@
 // A package made with "Kendi paketini oluştur" (package "ozel") arrives with its
 // contents in `custom`; its price is calculated again here (builder-core.js), so
 // a changed price in the browser can't reach us. It has no extras.
+// The customer also picks a subscription plan (settings.js → subscriptions). When
+// online billing is on (lib/billing.js), the thank-you page offers to save a card.
 
 import { json, sameOrigin, readBody, text, line, isEmail, passesTurnstile } from "../../lib/http.js";
 import { emailConfigured, inbox, sendEmail, fieldsEmail, textToHtml } from "../../lib/email.js";
@@ -18,6 +20,8 @@ import { orderAutoReply } from "../../lib/email-templates.js";
 import { findItem, formatMoney, toCents, depositCents } from "../../public/assets/js/pricing.js";
 import { newOrderRef } from "../../lib/order-ref.js";
 import { CUSTOM_ID, customPackage, customPrice, sizeOf, heatingOf, balconyText, roomSummary, questionOf, SINGLE_ITEMS } from "../../public/assets/js/builder-core.js";
+import { settings } from "../../public/data/settings.js";
+import { canBillOnline } from "../../lib/billing.js";
 
 const MAX_EXTRAS = 50;
 const MAX_QTY = 20;
@@ -73,6 +77,12 @@ export async function onRequestPost({ request, env }) {
   if (!form.name || !isEmail(form.email) || !form.phone || !form.address || !body.consent) {
     return json({ error: "Lütfen adınızı, telefonunuzu, geçerli bir e-posta adresini ve kurulum adresini girin, onay kutusunu işaretleyin." }, 400);
   }
+  // Subscription plan (settings.js → subscriptions); billed monthly after installation.
+  const plan = (settings.subscriptions || []).find((p) => p.id === line(body.plan, 40));
+  if (!plan) {
+    return json({ error: "Lütfen bir abonelik planı seçin (Temel ücretsizdir)." }, 400);
+  }
+  const planLine = `${plan.name} – ${plan.price ? `${formatMoney(toCents(plan.price))} /ay (kurulumdan sonra başlar)` : "ücretsiz"}`;
   if (!body.depositPaid || !form.depositSender) {
     return json({ error: "Talebi göndermeden önce %20 kaporayı havale/EFT ile gönderin, gönderen kişinin adını yazın ve kapora kutusunu işaretleyin." }, 400);
   }
@@ -114,6 +124,7 @@ export async function onRequestPost({ request, env }) {
         ["Paket", packageLine],
         ...customRows,
         ["Toplam", totalLine],
+        ["Abonelik planı", `${planLine}${plan.price ? (canBillOnline(env, plan.id) ? " · Müşteriye online kart kaydı önerildi" : " · Online ödeme kapalı: kurulumda elle başlatın") : ""}`],
         ["Kapora (%20, havale/EFT) — hesaptan kontrol edin", `${depositLine} · Gönderen: ${form.depositSender}`],
         ["İstedikleri (listede olmayan)", form.wishes],
         ["Ad soyad", form.name],
@@ -130,13 +141,14 @@ export async function onRequestPost({ request, env }) {
   }
 
   try {
-    const reply = orderAutoReply({ ...form, ticket, packageLine, extrasText, totalLine, depositLine, custom: Boolean(pkg.custom) });
+    const reply = orderAutoReply({ ...form, ticket, packageLine, extrasText, totalLine, depositLine, planLine, custom: Boolean(pkg.custom) });
     await sendEmail(env, { to: form.email, replyTo: to, subject: reply.subject, text: reply.text, html: textToHtml(reply.text) });
   } catch (err) {
     console.error("order: auto-reply failed", err); // the request itself did arrive, so still report success
   }
 
-  return json({ ok: true, ticket });
+  // The thank-you page offers to save a card for a paid plan when billing is on.
+  return json({ ok: true, ticket, next: { plan: plan.id, ...(canBillOnline(env, plan.id) ? { odeme: 1 } : {}) } });
 }
 
 

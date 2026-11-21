@@ -80,6 +80,18 @@ export const settings = {
     },
   ],
 
+  // Monthly billing of the plans above (lib/billing.js, /api/subscription).
+  // Off until a payment provider is connected in Cloudflare (see ABONELIK.md).
+  // Until then the chosen plan only arrives in the order e-mail and you bill by hand.
+  billing: {
+    // Plan codes from the provider's panel, per paid plan.
+    // iyzico: Abonelik → Ürünler → Ödeme planı → "Referans kodu".
+    planCodes: {
+      guvence: "",
+      premium: "",
+    },
+  },
+
   // Comparison table (home page + Servisler → #abonelik). One row per perk;
   // per plan: true = ✓, false = ✗, "gold" = gold ✓ (highlighted perk), or a
   // short text such as "Yılda 2".

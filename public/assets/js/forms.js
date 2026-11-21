@@ -52,6 +52,8 @@ function showSuccess(form, data) {
   if (form.dataset.redirect) {
     const url = new URL(form.dataset.redirect, location.origin);
     if (data.ticket) url.searchParams.set("ref", data.ticket);
+    // Extra values for the next page from the server, e.g. { plan: "guvence" }.
+    for (const [key, value] of Object.entries(data.next || {})) url.searchParams.set(key, String(value));
     location.assign(url);
     return;
   }

@@ -71,6 +71,12 @@
         <div class="cart-layout" id="order-layout" hidden>
           <!-- Request form: e-mailed to the sales inbox (settings.js → email.sales) by /api/order -->
           <form class="card card-pad form" id="order-form" data-endpoint="/api/order" data-redirect="/order-success.html">
+            <!-- Subscription plan; plans and prices come from settings.js → subscriptions -->
+            <fieldset class="plan-pick" id="order-plan-pick">
+              <legend>Hangi abonelik planını seçiyorsunuz? <span class="req">(zorunlu)</span></legend>
+              <p class="muted">Cihazlar bir kez alınır. Kurulumdan sonraki bakım ve servis için bir plan seçin; <strong>Temel ücretsizdir</strong>. Aylık ödeme kurulumdan sonra başlar; planı istediğiniz zaman değiştirebilir ya da iptal edebilirsiniz.</p>
+              <div class="plan-pick-table" data-plan-table data-plan-select="plan" data-plan-options></div>
+            </fieldset>
             <h2>İletişim bilgileriniz</h2>
             <p class="muted">Talebinizi göndermeden önce paket fiyatının %20'si kadar kaporayı havale/EFT ile gönderin. Kapora kurulum ve danışmanlık içindir; ardından sizi arayıp evinizi, paketi ve ekstra ürünleri konuşuyor, kurulum randevunuzu birlikte belirliyoruz.</p>
             <input type="hidden" name="package" data-order-package>

@@ -252,8 +252,28 @@ const TABS = [
   ["home", "Ana sayfa"],
   ["lights", "Işıklar"],
   ["climate", "İklim"],
+  ["shades", "Perdeler"],
   ["security", "Güvenlik"],
+  ["energy", "Enerji"],
 ];
+/** Which tab a status tile on the home screen opens. */
+const TILE_TAB = { lights: "lights", climate: "climate", security: "security", cameras: "security", shades: "shades", energy: "energy" };
+const EVENT_ICONS = {
+  scene: '<rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
+  lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+  shades: '<path d="M4 4h16M6 4v15M18 4v15M6 9h12M6 14h12"/>',
+};
+/** Shade position per scene (open %); missing = leave as is. */
+const SCENE_SHADES = { morning: 100, away: 0, movie: 0, sleep: 0, vacation: 0, home: 50 };
+const SCENE_LIGHTS = {
+  morning: (name) => name !== "Yatak odası",
+  away: () => false,
+  movie: (name) => name === "Salon",
+  sleep: () => false,
+  home: (name) => ["Salon", "Hol", "Mutfak"].includes(name),
+  vacation: () => false,
+};
 
 function initTablet() {
   const root = document.getElementById("tablet-demo");
@@ -267,6 +287,8 @@ function initTablet() {
     temps: Object.fromEntries(tablet.rooms.map((r) => [r.name, r.temp])),
     armed: false,
     locked: true,
+    shades: Object.fromEntries((tablet.shades || []).map((s) => [s.name, s.open])),
+    devices: Object.fromEntries((tablet.energy?.devices || []).map((d) => [d.name, d.on])),
   };
 
   const greeting = () => {
@@ -298,12 +320,77 @@ function initTablet() {
         ${Object.entries(scene.status)
           .map(
             ([key, [mode, detail]]) => `
-          <button type="button" class="tab-tile" data-tab="${["lights", "climate", "security"].includes(key) ? key : "home"}">
+          <button type="button" class="tab-tile" data-tab="${TILE_TAB[key] || "home"}">
             <span class="tab-tile-name">${svgIcon(TILE_ICONS[key])}${TILE_NAMES[key]}</span>
             <strong>${escapeHtml(mode)}</strong>
             <span>${escapeHtml(detail)}</span>
           </button>`
           )
+          .join("")}
+      </div>
+      ${
+        tablet.events?.length
+          ? `
+      <p class="tab-label">Son olaylar <span>Bugün</span></p>
+      <ul class="tab-events">
+        ${tablet.events
+          .map((ev) => `<li><span class="tab-ev-icon">${svgIcon(EVENT_ICONS[ev.icon] || EVENT_ICONS.bell)}</span><span class="tab-ev-text">${escapeHtml(ev.text)}</span><time>${escapeHtml(ev.time)}</time></li>`)
+          .join("")}
+      </ul>`
+          : ""
+      }`;
+  }
+
+  function shadesHtml() {
+    const open = Object.values(state.shades).filter((v) => v > 0).length;
+    return `
+      <p class="tab-hello">Perdeler<span>.</span></p>
+      <p class="tab-sub">${open} / ${tablet.shades.length} açık. Dokunun: kapalı → yarım → açık.</p>
+      <div class="tab-rooms">
+        ${tablet.shades
+          .map((s) => {
+            const v = state.shades[s.name];
+            return `
+          <button type="button" class="tab-room tab-shade${v ? " is-on" : ""}" data-shade="${escapeHtml(s.name)}" aria-label="${escapeHtml(s.name)} perdesi: %${v} açık">
+            <span class="tab-shade-win" aria-hidden="true"><span style="height:${100 - v}%"></span></span>
+            <strong>${escapeHtml(s.name)}</strong><span>${v === 0 ? "Kapalı" : v === 100 ? "Açık" : `%${v} açık`}</span>
+          </button>`;
+          })
+          .join("")}
+      </div>
+      <div class="tab-quick">
+        <button type="button" data-shades-all="100">Hepsini aç</button>
+        <button type="button" data-shades-all="0">Hepsini kapat</button>
+      </div>`;
+  }
+
+  function energyHtml() {
+    const e = tablet.energy;
+    const max = Math.max(...e.hours);
+    const now = new Date().getHours();
+    // Last 24 hours, oldest first, ending with the current hour.
+    const last = Array.from({ length: 24 }, (_, i) => (now + 1 + i) % 24);
+    const total = e.hours.reduce((a, b) => a + b, 0);
+    const live = e.devices.reduce((sum, d) => sum + (state.devices[d.name] ? d.watt || 60 : 0), 0);
+    return `
+      <p class="tab-hello">Enerji<span>.</span></p>
+      <p class="tab-sub">Şu an <strong>${(live / 1000).toLocaleString("tr-TR", { maximumFractionDigits: 2 })} kW</strong> · son 24 saatte ${total.toLocaleString("tr-TR", { maximumFractionDigits: 1 })} kWh</p>
+      <div class="tab-chart" role="img" aria-label="Son 24 saatin saatlik tüketimi">
+        ${last.map((h) => `<span class="${h === now ? "is-now" : ""}" style="height:${Math.round((e.hours[h] / max) * 100)}%" title="${String(h).padStart(2, "0")}:00 · ${e.hours[h].toLocaleString("tr-TR")} kWh"></span>`).join("")}
+      </div>
+      <div class="tab-chart-axis" aria-hidden="true">${[0, 6, 12, 18].map((i) => `<span>${String(last[i]).padStart(2, "0")}:00</span>`).join("")}<span>Şimdi</span></div>
+      <p class="tab-label">Cihazlar <span>Prizden açıp kapatın</span></p>
+      <div class="tab-devices">
+        ${e.devices
+          .map((d) => {
+            const on = state.devices[d.name];
+            return `
+          <button type="button" class="tab-device${on ? " is-on" : ""}" ${d.fixed ? "disabled" : `data-device="${escapeHtml(d.name)}"`} aria-pressed="${on}">
+            <strong>${escapeHtml(d.name)}</strong>
+            <span>${d.fixed ? "Hep açık" : on ? `${d.watt || 60} W` : "Kapalı"}</span>
+            <i aria-hidden="true"></i>
+          </button>`;
+          })
           .join("")}
       </div>`;
   }
@@ -359,7 +446,7 @@ function initTablet() {
   }
 
   function draw(changed = "tab") {
-    const body = { home: homeHtml, lights: lightsHtml, climate: climateHtml, security: securityHtml }[state.tab]();
+    const body = { home: homeHtml, lights: lightsHtml, climate: climateHtml, shades: shadesHtml, security: securityHtml, energy: energyHtml }[state.tab]();
     const key = `${state.tab}|${state.scene}`;
     const anim = key !== lastKey ? (changed === "scene" ? "is-scene-change" : "is-tab-change") : "";
     lastKey = key;
@@ -382,12 +469,24 @@ function initTablet() {
     if (scene) {
       changed = "scene";
       state.scene = scene.dataset.scene;
-      const off = ["away", "sleep"].includes(state.scene);
-      for (const r of tablet.rooms) state.lights[r.name] = !off && (state.scene === "morning" ? r.name !== "Yatak odası" : r.name === "Salon");
-      state.armed = state.scene === "away";
-      state.locked = state.scene !== "morning" || state.locked;
+      const lit = SCENE_LIGHTS[state.scene] || (() => false);
+      for (const r of tablet.rooms) state.lights[r.name] = lit(r.name);
+      state.armed = ["away", "vacation"].includes(state.scene);
+      state.locked = state.scene === "home" ? false : state.scene !== "morning" || state.locked;
+      if (state.scene in SCENE_SHADES) for (const s of Object.keys(state.shades)) state.shades[s] = SCENE_SHADES[state.scene];
+      if (state.scene === "movie") state.devices["TV ve ses sistemi"] = true;
+      if (["away", "vacation", "sleep"].includes(state.scene)) state.devices["TV ve ses sistemi"] = false;
     } else if (tab) state.tab = tab.dataset.tab;
-    else if (light) state.lights[light.dataset.light] = !state.lights[light.dataset.light];
+    else if (t.closest("[data-shade]")) {
+      const name = t.closest("[data-shade]").dataset.shade;
+      state.shades[name] = state.shades[name] === 0 ? 50 : state.shades[name] === 50 ? 100 : 0;
+    } else if (t.closest("[data-shades-all]")) {
+      const v = Number(t.closest("[data-shades-all]").dataset.shadesAll);
+      for (const s of Object.keys(state.shades)) state.shades[s] = v;
+    } else if (t.closest("[data-device]")) {
+      const name = t.closest("[data-device]").dataset.device;
+      state.devices[name] = !state.devices[name];
+    } else if (light) state.lights[light.dataset.light] = !state.lights[light.dataset.light];
     else if (temp) state.temps[temp.dataset.temp] = Math.min(28, Math.max(15, state.temps[temp.dataset.temp] + Number(temp.dataset.delta)));
     else if (t.closest("[data-arm]")) state.armed = !state.armed;
     else if (t.closest("[data-lock]")) state.locked = !state.locked;

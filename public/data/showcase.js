@@ -5,7 +5,8 @@
 //  • brands: kayan marka şeridi. Bu markalar Evra'nın ortağı değildir; cihazları
 //    Wi-Fi, Bluetooth, Zigbee, kızılötesi (IR) ya da Home Assistant
 //    entegrasyonlarıyla sisteme bağlanabilir. Uyumluluğu keşifte kontrol ediyoruz.
-//  • tablet: sitedeki duvar ekranı demosu (sahneler ve oda listeleri).
+//  • tablet: sitedeki duvar ekranı demosu (sahneler, oda listeleri, son olaylar,
+//    perdeler ve enerji sekmeleri).
 //  • day: "Evra'lı bir gün" kartları. `image` eklerseniz (örn.
 //    "/assets/img/day/sabah.jpg") renkli arka planın yerine fotoğraf gösterilir.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -66,7 +67,47 @@ export const tablet = {
       text: "Işıklar söner, kapı kilitlenir, yatak odası 19°'ye ayarlanır.",
       status: { lights: ["Kapalı", "0 / 9 açık"], climate: ["Uyku", "19° · 3 oda"], security: ["Gece", "2 / 2 kilitli"], cameras: ["Dışarısı", "2 kayıtta"], shades: ["Kapalı", "0 / 4 açık"], energy: ["Düşük", "0,4 kW"] },
     },
+    {
+      id: "home",
+      name: "Eve dönüş",
+      icon: '<path d="M3 11 12 4l9 7v9H3v-9Z"/><path d="M10 20v-5h4v5"/>',
+      text: "Kapı açılır, hol ve salon yanar, alarm kapanır, ev ısınmaya başlar.",
+      status: { lights: ["Hoş geldiniz", "4 / 9 açık"], climate: ["Isıtılıyor", "21° · 3 oda"], security: ["Kapalı", "Kapı açık"], cameras: ["Sessiz", "Bildirim kapalı"], shades: ["Yarım", "2 / 4 açık"], energy: ["Normal", "1,1 kW"] },
+    },
+    {
+      id: "vacation",
+      name: "Tatil",
+      icon: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/>',
+      text: "Alarm kurulur, kombi en aza iner; akşamları ışıklar yanıp söner, ev dolu görünür.",
+      status: { lights: ["Simülasyon", "Akşam rastgele"], climate: ["Donma koruma", "12° · 3 oda"], security: ["Kurulu", "2 / 2 kilitli"], cameras: ["Canlı", "3 kayıtta"], shades: ["Programlı", "Sabah açılır"], energy: ["Çok düşük", "0,1 kW"] },
+    },
   ],
+  // "Son olaylar" on the home screen (newest first)
+  events: [
+    { time: "21:04", text: "Film sahnesi açıldı", icon: "scene" },
+    { time: "20:41", text: "Çamaşır makinesi bitti", icon: "bell" },
+    { time: "19:12", text: "Giriş kapısı kilitlendi", icon: "lock" },
+    { time: "18:30", text: "Güneş battı, perdeler kapandı", icon: "shades" },
+  ],
+  // Perdeler tab (open %: 0 = closed)
+  shades: [
+    { name: "Salon", open: 0 },
+    { name: "Yatak odası", open: 0 },
+    { name: "Çocuk odası", open: 0 },
+    { name: "Mutfak", open: 0 },
+  ],
+  // Enerji tab: use per hour of the day (kWh, 00:00 → 23:00; shown as the last
+  // 24 hours) and the devices on the meter
+  energy: {
+    hours: [0.3, 0.2, 0.2, 0.2, 0.3, 0.6, 1.1, 1.4, 0.9, 0.5, 0.4, 0.5, 0.7, 0.6, 0.5, 0.6, 0.8, 1.2, 1.5, 1.7, 1.3, 0.9, 0.6, 0.4],
+    devices: [
+      { name: "Kombi", watt: 180, on: true },
+      { name: "Çamaşır makinesi", watt: 0, on: false },
+      { name: "TV ve ses sistemi", watt: 140, on: true },
+      { name: "Bulaşık makinesi", watt: 0, on: false },
+      { name: "Buzdolabı", watt: 90, on: true, fixed: true },
+    ],
+  },
   rooms: [
     { name: "Salon", lights: 3, temp: 22 },
     { name: "Mutfak", lights: 2, temp: 21 },

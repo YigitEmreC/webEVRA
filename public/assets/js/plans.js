@@ -28,21 +28,34 @@ export function initPlans() {
   const rows = settings.subscriptionFeatures || [];
   document.querySelectorAll("[data-plan-table]").forEach((root) => {
     const cta = root.dataset.planCta || "/contact.html";
+    // data-plan-select="plan": the table is a required choice in a form (Siparişim);
+    // each column header holds a radio button with that name, and there's no CTA.
+    const select = root.dataset.planSelect || "";
+    const head = (p) => `
+                  ${p.popular ? `<span class="pt-badge"><span class="pt-long">En çok tercih edilen</span><span class="pt-short">Popüler</span></span>` : ""}
+                  <span class="pt-name">${escapeHtml(p.name)}</span>
+                  ${price(p)}
+                  <span class="pt-sub">${escapeHtml(p.text || "")}</span>`;
     root.innerHTML = `
       <div class="pt-scroll">
-        <table class="plan-table">
+        <table class="plan-table${select ? " is-select" : ""}">
           <caption class="sr-only">Abonelik planlarının karşılaştırması</caption>
           <thead>
             <tr>
               <th scope="col" class="pt-corner"><span>Ne dahil?</span></th>
               ${plans
                 .map(
-                  (p) => `
-                <th scope="col" class="${p.popular ? "is-popular" : ""}">
-                  ${p.popular ? `<span class="pt-badge"><span class="pt-long">En çok tercih edilen</span><span class="pt-short">Popüler</span></span>` : ""}
-                  <span class="pt-name">${escapeHtml(p.name)}</span>
-                  ${price(p)}
-                  <span class="pt-sub">${escapeHtml(p.text || "")}</span>
+                  (p, i) => `
+                <th scope="col" class="${p.popular ? "is-popular" : ""} pt-col-${escapeHtml(p.id)}">
+                  ${
+                    select
+                      ? `<label class="pt-pick">
+                    <input type="radio" name="${escapeHtml(select)}" value="${escapeHtml(p.id)}" ${i === 0 ? "required" : ""}>
+                    ${head(p)}
+                    <span class="pt-pick-btn" aria-hidden="true"><span class="pt-pick-off">Seç</span><span class="pt-pick-on">✓ Seçildi</span></span>
+                  </label>`
+                      : head(p)
+                  }
                 </th>`
                 )
                 .join("")}
@@ -54,13 +67,30 @@ export function initPlans() {
                 (r) => `
               <tr${plans.some((p) => r[p.id] === "gold") ? ' class="pt-row-gold"' : ""}>
                 <th scope="row">${escapeHtml(r.label)}</th>
-                ${plans.map((p) => `<td class="${p.popular ? "is-popular" : ""}">${cell(r[p.id])}</td>`).join("")}
+                ${plans.map((p) => `<td class="${p.popular ? "is-popular" : ""} pt-col-${escapeHtml(p.id)}">${cell(r[p.id])}</td>`).join("")}
               </tr>`
               )
               .join("")}
           </tbody>
         </table>
       </div>
-      <div class="pt-cta"><a class="btn btn-glow" href="${escapeHtml(cta)}">Bilgi al</a></div>`;
+      ${select ? "" : `<div class="pt-cta"><a class="btn btn-glow" href="${escapeHtml(cta)}">Bilgi al</a></div>`}`;
+    if (select) {
+      // Marks the chosen column (CSS: [data-chosen]) and lets clicks on its cells choose too.
+      const table = root.querySelector(".plan-table");
+      const mark = () => (table.dataset.chosen = root.querySelector(`input[name="${select}"]:checked`)?.value || "");
+      root.addEventListener("change", mark);
+      root.addEventListener("click", (e) => {
+        const cellEl = e.target.closest("td[class*='pt-col-']");
+        if (!cellEl) return;
+        const id = [...cellEl.classList].find((c) => c.startsWith("pt-col-"))?.slice(7);
+        const input = root.querySelector(`input[name="${select}"][value="${id}"]`);
+        if (input && !input.checked) {
+          input.checked = true;
+          input.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      });
+      mark();
+    }
   });
 }
